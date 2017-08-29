@@ -21,8 +21,9 @@ import org.apache.spark.sql.Row
 import org.apache.spark.SparkConf
 import scala.util.matching.Regex
 import scala.collection.JavaConverters._
+import org.gz.util.Conf
 
-object SegWithOrigin2 {
+object SegWithOrigin2 extends Conf{
 	
 	val segBase = ArrayBuffer[SegPage]()
 	
@@ -54,7 +55,7 @@ object SegWithOrigin2 {
 	
 	def init = {
 		val os = System.getProperty("os.name");  
-		val homePath = if(os.toLowerCase().startsWith("win")) "关键词/" else "/home/cloud/origin/resources/"  
+		val homePath = if(os.toLowerCase().startsWith("win")) config.getString("path.windows") else config.getString("path.linux")   
 		val path = Array("当事人", "审理经过",
 				"一审被告辩称", "一审第三人称", "一审法院查明", "一审法院认为", "一审原告称",
 				"上诉人诉称", "被上诉人辩称", "第三人称",
@@ -81,7 +82,9 @@ object SegWithOrigin2 {
 		var lastPriority = -1
 		var tmp = "none"
 		var strs = ""
-		val t = if (arr(0).trim().endsWith("书")) 1 else 0
+		var blank = 0
+		while (((arr(blank) == "")||(arr(blank) == "\r"))&&(blank < arr.length - 1)) blank = blank + 1
+		val t = if (arr(blank).trim().endsWith("书")) blank + 1 else blank
 		for (i <- t until arr.length){
 			priority = 999
 			tmp = ""
