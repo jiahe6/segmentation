@@ -31,21 +31,29 @@ object CaseNumber {
   			}
   		}  		
   		if (arr.length > 0)
-  			dbColl.updateOne(eqq("_id", x.get("_id")), set("mininglabel.相关法条", arr.toList.asJava))
+  			dbColl.updateOne(eqq("_id", x.get("_id")), set("mininglabel.相关案号", arr.toList.asJava))
    	})
 	}
 	
 	def unsetCaseNumber = {
 		val docs = dbColl.find(eqq("basiclabel.casecause", "盗窃罪")).iterator()
 		docs.foreach(x => {
-			val l = x.get("mininglabel", classOf[Document]).get("相关法条", classOf[java.util.List[String]])
+			val l = x.get("mininglabel", classOf[Document]).get("相关案号", classOf[java.util.List[String]])
 			if (l.size() == 0)
-				dbColl.updateOne(eqq("_id", x.get("_id")), unset("mininglabel.相关法条"))
+				dbColl.updateOne(eqq("_id", x.get("_id")), unset("mininglabel.相关案号"))
 			else println(x.getString("_id") + "\t" + l.asScala.mkString(","))
 		})		
 	}
 	
+	def unset相关法条 = {
+		val docs = dbColl.find(eqq("basiclabel.casecause", "盗窃罪")).iterator()
+		docs.foreach(x => {
+				dbColl.updateOne(eqq("_id", x.get("_id")), unset("mininglabel.相关法条"))			
+		})		
+	}
+	
 	def main(args: Array[String]): Unit = {
-		unsetCaseNumber
+		unset相关法条
+		client.close()
 	}
 }
