@@ -37,21 +37,21 @@ object WordFrequency {
 	
 	def doSample(doc: Document) = {
 		val resultWriter = new PrintWriter(new File("D:/library/sampleout/theftResult/" + doc.getString("_id")))
-    val contentWriter = new PrintWriter(new File("D:/library/sampleout/theftContent/" + doc.getString("_id")))
-    val content = doc.getString("content")
+		val contentWriter = new PrintWriter(new File("D:/library/sampleout/theftContent/" + doc.getString("_id")))
+		val content = doc.getString("content")
     
 	  val seg = doc.get("segdata", classOf[Document])
 	  if (seg != null) resultWriter.write({
 	  	val w = seg.getString("裁判结果")
 	  	if (w != null) w else ""
 	  })
-    contentWriter.write(content)
-    resultWriter.close()
-    contentWriter.close()
+		contentWriter.write(content)
+		resultWriter.close()
+		contentWriter.close()
 	}
 	
 	def doSample2(doc: Document) = {    
-    val content = doc.getString("content")    
+		val content = doc.getString("content")    
 	  val seg = doc.get("segdata", classOf[Document])
 	  if (seg != null) {
 	  	val judgeRes = seg.getString("裁判结果")
@@ -75,15 +75,15 @@ object WordFrequency {
 		var total = 0
 		var i = nextint
 		while (docs.hasNext){
-    	doc = docs.next()
-    	if (count == i){ 
-    		i = i + nextint
-	    	f(doc)
-    		total = total + 1
-    		if (total % 3000 == 0) __init__(total / 3000)
-    	}
-    	count = count + 1
-    }		
+			doc = docs.next()
+			if (count == i){ 
+				i = i + nextint
+				f(doc)
+				total = total + 1
+				if (total % 3000 == 0) __init__(total / 3000)
+			}
+			count = count + 1
+		}		
 	}
 	
 	def isin(x: Char, str: String) = {
