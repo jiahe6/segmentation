@@ -4,6 +4,9 @@ import com.mongodb.MongoClient
 import scala.collection.JavaConversions.asScalaIterator
 import com.mongodb.client.model.Filters.{eq => eqq}
 
+/**
+ * 用袁媛的数据库查看原始库中被删了哪些数据
+ */
 object FindMissedData {
 	
 	val cli = new MongoClient("192.168.12.161", 27017)

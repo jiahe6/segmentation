@@ -11,6 +11,9 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import org.gz.mongospark.SegWithOrigin2
 
+/**
+ * 抽样数据，进行分段结果评测
+ */
 object VerifyRes {
 	
 	private lazy val mongo = new MongoClient("192.168.12.161", 27017)

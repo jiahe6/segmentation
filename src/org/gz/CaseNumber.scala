@@ -9,6 +9,9 @@ import org.bson.Document
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 
+/**
+ * 相关案号匹配
+ */
 object CaseNumber {
 	lazy val client = new MongoClient("192.168.12.147", 65426)
 	lazy val db = client.getDatabase("wenshu")
@@ -26,7 +29,7 @@ object CaseNumber {
   		val arr = ArrayBuffer[String]()
   		iter.foreach { y =>
   			if (y != caseNumber){
-  				println(x.getString("_id") + "\t" + y)
+  				//println(x.getString("_id") + "\t" + y)
   				arr += y
   			}
   		}  		
@@ -53,7 +56,8 @@ object CaseNumber {
 	}
 	
 	def main(args: Array[String]): Unit = {
-		unset相关法条
+		//unset相关法条
+		setCaseNumber
 		client.close()
 	}
 }

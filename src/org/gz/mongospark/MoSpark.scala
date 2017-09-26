@@ -18,7 +18,7 @@ import org.gz.getershen
 /**
  * @author cloud
  *	spark连接mongodb的代码
- *  一审再审数据导入
+ *  一审再审数据导入，后续用不到此类了
  */
 object MoSpark { 
 	lazy val mongo = new MongoClient("192.168.12.161", 27017)

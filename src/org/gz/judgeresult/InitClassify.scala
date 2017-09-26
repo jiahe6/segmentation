@@ -2,6 +2,9 @@ package org.gz.judgeresult
 
 import scala.collection.mutable.HashMap
 
+/**
+ * 词典，及初分的正则
+ */
 object InitClassify {
 	
   val dict = Array(
@@ -14,7 +17,7 @@ object InitClassify {
   		
   val dictMap = HashMap(
   		"定罪" -> "犯.+罪",
-  		"有期徒刑" -> "判处有期徒刑|判处其有期徒刑",
+  		"有期徒刑" -> "(判处|执行)有期徒刑|判处其有期徒刑",
   		"缓刑" -> "缓刑",
   		"拘役" -> "拘役",
   		"管制" -> "管制[^刀]",

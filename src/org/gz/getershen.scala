@@ -30,6 +30,7 @@ import com.mongodb.MongoClientURI
 /**
  * @author cloud
  *	二审分段程序，也进行全量数据导入工作
+ * 分段程序入口都走SegWithOrigin2.fenduan，那个比较新
  */
 object getershen {
 	

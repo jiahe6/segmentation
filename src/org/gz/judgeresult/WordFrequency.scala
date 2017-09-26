@@ -12,17 +12,22 @@ import scala.collection.mutable.ArrayBuffer
 import java.io.FileWriter
 import scala.collection.mutable.HashMap
 
-
+/**
+ * 盗窃罪，先抽样，再获取初分结果
+ */
 object WordFrequency {
 	lazy val client = new MongoClient("192.168.12.147", 65426)
 	lazy val db = client.getDatabase("wenshu")
 	lazy val dbColl = db.getCollection("theft")
 	val theftSample = "D:/library/sampleout/theftSample/"
 
+	//词典writer，通过initclassify获取词典，然后对每个词典生成一个printwriter，每3000条换一个文件夹
 	val dictWriter = HashMap[String, PrintWriter]()
+	//没有路径那么就创建整个路径
 	checkFileParent(new File(theftSample + "others"))
 	val printOther = new PrintWriter(new FileWriter(new File(theftSample + "others"), true))
 	
+	//加载词典
 	def __init__(i: Int) = {
 		dictWriter.foreach(_._2.close)
 		InitClassify.dict.foreach(x =>{ 
@@ -33,8 +38,12 @@ object WordFrequency {
 	}
 	__init__(0) 
 	
+	//检查父目录是否有这个路径，没有就创建
 	def checkFileParent(file: File) = if (!file.getParentFile.exists) file.getParentFile.mkdirs
 	
+	//f: Document -> unit 
+	//把没经过初分的数据输出出来，正式使用时不用此函数用sample2
+	@deprecated("使用sample2对结果进行初分")
 	def doSample(doc: Document) = {
 		val resultWriter = new PrintWriter(new File("D:/library/sampleout/theftResult/" + doc.getString("_id")))
 		val contentWriter = new PrintWriter(new File("D:/library/sampleout/theftContent/" + doc.getString("_id")))
@@ -50,6 +59,8 @@ object WordFrequency {
 		contentWriter.close()
 	}
 	
+	//f : Document -> unit
+	//获取一个Dcoument的正文，然后经过正则表达式匹配，由对应的pritwriter写到指定文件
 	def doSample2(doc: Document) = {    
 		val content = doc.getString("content")    
 	  val seg = doc.get("segdata", classOf[Document])
@@ -59,7 +70,7 @@ object WordFrequency {
 	  		val c = 11.toChar
 	  		judgeRes.split(s"[${c}\n]").foreach(y => 
 	  			seperateSentence(y.replace("\r", "")).foreach(x => 
-	  			if (x != "") {
+	  			if ((x != "")&&(!filterOtherSentence(x))) {
 	  				val writer = dictWriter.getOrElse(InitClassify.classify(x), printOther)
 	  				writer.println(x)
 	  			}))
@@ -67,6 +78,33 @@ object WordFrequency {
 	  }
 	}
 	
+	//把套话过滤了，暂时没用
+	def filterOtherSentence(str: String) = {
+		var flag = false
+		val otherSentence = Array(
+				"本裁定送达后立即发生法律效力",
+				"如不服本判决",
+				"可在接到判决书的第二日起十日内",
+				"书面上诉的",
+				"本裁定为终审裁定",
+				"本判决为终审判决",
+				"本裁定送达后即发生法律效力",
+				"本裁定自送达之日起发生法律效力"
+				)
+		val otherSentenceRegex = Array(
+				"通过本院或[^:：,。.，]*提(起|出)上诉",
+				"应当?提?交上诉状正本.?份",
+				"副本.?份"
+				)		
+		otherSentence.foreach { x => flag = flag | str.contains(x)}
+		otherSentenceRegex.foreach( x => {
+			val m = x.r.findAllIn(str)
+			if (m.hasNext) flag = true
+		})  
+		flag
+	}
+	
+	//给定一个mongodb的返回结果，再给定一个文档处理函数，再给定一个随机数跨度，来进行抽样
 	def sampleData(docs: Iterator[Document], f: Document => Unit, n: Int = 100) = {
 		var r = new Random
 		def nextint = r.nextInt(n) + 1
@@ -86,14 +124,16 @@ object WordFrequency {
 		}		
 	}
 	
+	//判断一个字符是否出现在句子里，用来给后面递归判断括号用，应该有更好的方法，到时候替换就行
 	def isin(x: Char, str: String) = {
 		var flag = false
 		str.foreach(y => if (x == y) flag = true)
 		flag
 	}
 	
+	//对一个段落先把它中间不规范的数字转化为规范数字，然后删除括号内容，然后处理特殊情况，返回的是一段话的断句结果
 	def seperateSentence(ss: String) = {		
-		//将4，800、300,200.00元这种分出来
+		//将4，800、300,200.00元这种分出来，转化为标准写法
 		val regex = "([0-9]+[，、,.])+[0-9]+".r
 		var str = ss.trim
 		val m = regex findAllIn str
@@ -101,7 +141,7 @@ object WordFrequency {
 			val za = z.replaceAll("[，、,]", "")
 			str = str.replace(z, za)
 		}) 
-		//将括号内数据分隔出来
+		//将括号内数据分隔出来，加入到一个ArrayBuffer中，然后删除原句中的括号内容。
 		var i = 0		
 		var stack = new java.util.Stack[Int]	//存放左括号
 		var res = new ArrayBuffer[String]()		//存放数据结果
@@ -136,6 +176,8 @@ object WordFrequency {
 		sentence	
 	}
 	
+	//正式使用时没用到
+	@deprecated("临时数据的处理方法")
 	def getFiles(path : File) = {
 		path.listFiles().foreach(x => {
 			val printer = new PrintWriter(new File("D:/library/sampleout/theftAnnotated/" + x.getName))

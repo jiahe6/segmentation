@@ -32,8 +32,8 @@ object ImportOrigin {
 	val ls = "D:/library/wenshu/20131231/最高人民法院/0/民事案件/（2013）民二终字第64号_f05d5807-b647-11e3-84e9-5cf3fc0c2c18裁定书.txt"
 	val log = LogManager.getLogger(this.getClass.getName())
 	lazy val mongo = new MongoClient("192.168.12.161", 27017)
-	lazy val db = mongo.getDatabase("wenshu")
-	lazy val dbColl = db.getCollection("origin2")
+	lazy val db = mongo.getDatabase("updatesdata")
+	lazy val dbColl = db.getCollection("newdata")
 
 	//探测器
 	val det = CodepageDetectorProxy.getInstance()
@@ -58,27 +58,6 @@ object ImportOrigin {
 		files
 	}
 	
-	def segByStart(reg: Array[Regex], str: String) = {
-		var f = false
-		reg.foreach(x => {
-			val rs = x.findAllIn(str.trim)
-  		if (rs.hasNext)
-  			if (rs.start < 2)
-  				f = true
-  	})
-  	f
-	}
-	
-	def segByAll(reg: Array[Regex], str: String) = {
-		var f = false
-		reg.foreach(x => {
-			val rs = x.findAllIn(str)
-  		if (rs.hasNext)
-  				f = true
-  	})
-  	f
-	}
-	
 	def getwenshuID(fileName: String) = {
 		val n = fileName.split("_")
 		val name = n(n.length - 1)
@@ -89,6 +68,9 @@ object ImportOrigin {
 		}
 	}
 	
+	//过滤html标签，但是又找不到那几个奇怪的文书了，所以先注释一句
+	//这样直接去掉<>里的内容会去掉法规名称，有点怪
+	//用python的htmlParser倒是可以完美去掉标签，可是java掉python不好调
 	def filterHtml(arr: Array[String]) = {
 		var ssss = StringEscapeUtils.unescapeHtml4(arr.mkString("\n"))
   	val rx = "<[\\W\\w]*?>".r
@@ -98,7 +80,7 @@ object ImportOrigin {
   	ssss = rx_script.replaceAllIn(ssss, "")
   	ssss = rx_style.replaceAllIn(ssss, "")
   	ssss = rx_redundancy.replaceAllIn(ssss, "")
-  	ssss = rx.replaceAllIn(ssss, "")
+  	//ssss = rx.replaceAllIn(ssss, "")
   	ssss.replaceAll("((\r\n)|\n)[\\s\t ]*(\\1)+", "$1").replaceAll("^((\r\n)|\n)", "").split("((\r\n)|\n)")
 	}
 	

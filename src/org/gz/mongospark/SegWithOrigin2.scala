@@ -23,6 +23,9 @@ import scala.util.matching.Regex
 import scala.collection.JavaConverters._
 import org.gz.util.Conf
 
+/**
+ * 二审分段数据的spark版本，
+ */
 object SegWithOrigin2 extends Conf{
 	
 	val segBase = ArrayBuffer[SegPage]()
