@@ -13,6 +13,7 @@ import org.gz.util.Conf
 import org.gz.util.IOUtils
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
+import org.gz.ImportOrigin
 
 /**
  * 定期导入程序
@@ -28,15 +29,16 @@ object ScheduleImport extends Conf{
 	val c = Calendar.getInstance
 	c.setTime(sdf.parse(sdf.format(new Date(System.currentTimeMillis()))))
 	
-	def getStartTime = config.getString("starttime")
+	def getStartTime = config.getString("importwenshu.starttime")
 	val c2 = Calendar.getInstance
 	c2.setTime(sdf.parse(getStartTime))
 	val (wenshuRarPath, wenshuPath) = 
 		if(System.getProperty("os.name").toLowerCase().startsWith("win")) (config.getString("importwenshu.winrarpath"), config.getString("importwenshu.winwenshupath")) 
 		else (config.getString("importwenshu.linuxrarpath"), config.getString("importwenshu.linuxwenshupath"))
 	
-	def DownloadRar(day: String) = {
-		{new URL("http://wenshu.court.gov.cn/DownLoad/FileDownLoad.aspx?action=1&userName=dsjyjy&pwd=yjy201611&dates=" + day) #> new File(wenshuRarPath + day + ".rar") !!}
+	def DownloadRar(day: String) = {		
+		val res = {new URL("http://wenshu.court.gov.cn/DownLoad/FileDownLoad.aspx?action=1&userName=dsjyjy&pwd=yjy201611&dates=" + day) #> new File(wenshuRarPath + day + ".rar") !}
+		println(res)
 	}
 	
 	def unzipRar(day: String) = {
@@ -56,7 +58,7 @@ object ScheduleImport extends Conf{
 					if (c.after(c2))
       			doInsertByTime(c2)
       	} catch {
-      		case e: Throwable => log.error(s"return error when downloading wenshu${sdf.format(c.getTime)} at " + new Date(System.currentTimeMillis))
+      		case e: Throwable => log.error(s"return error when doInsertByTime at:\t+ ${c2.getTime}")
       	}
       }
     }
@@ -74,18 +76,23 @@ object ScheduleImport extends Conf{
   	//+1s
   	cal.add(Calendar.DAY_OF_MONTH, 1)
   	//写到芒果里
+  	val list = ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"))
+  	dbColl.insertMany(list)
   }
 	
   def main(args: Array[String]): Unit = {
-  	val so = insertOld()
-  	
+  	val so = insertOld  	
   	val cn = Calendar.getInstance
 		cn.setTime(sdf.parse(sdf.format(new Date(System.currentTimeMillis()))))
     val scheduler = Executors.newScheduledThreadPool(1)
   		val r = new Runnable(){
   			override def run(): Unit = {
   				if (!c.after(c2)) so.shutdown
-  				doInsertByTime(cn)
+  				try {					
+      			doInsertByTime(cn)
+	      	} catch {
+      			case e: Throwable => log.error(s"return error when doInsertByTime at:\t+ ${cn.getTime}")
+      		}
   			}
     }
   	scheduler.scheduleAtFixedRate(r, 0, 1, TimeUnit.DAYS)
