@@ -70,7 +70,7 @@ object ImportOrigin {
 	
 	//过滤html标签，但是又找不到那几个奇怪的文书了，所以先注释一句
 	//这样直接去掉<>里的内容会去掉法规名称，有点怪
-	//用python的htmlParser倒是可以完美去掉标签，可是java掉python不好调
+	//用python的htmlParser倒是可以完美去掉标签，可是java调python不好调
 	def filterHtml(arr: Array[String]) = {
 		var ssss = StringEscapeUtils.unescapeHtml4(arr.mkString("\n"))
   	val rx = "<[\\W\\w]*?>".r
