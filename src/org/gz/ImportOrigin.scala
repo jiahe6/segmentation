@@ -98,42 +98,47 @@ object ImportOrigin {
 		}
 	}
 	
+	def folderToDocuments(x: File) = {
+		var resList = new ArrayList[Document]
+  	var count = 0
+		log.warn("new path start:" + x.getPath)		  		
+		log.warn("GetAllFiles start: " + x.getPath)
+		val files = getAllFiles(x)
+		log.warn("GetAllFiles done: " + x.getPath)
+		files.foreach(x => 
+			try{
+				log.info("start wenshu chuli:" + x.getPath)
+				var d = new Document
+				val id = getwenshuID(x.getName)
+				if (id != "")	d.append("_id", id)
+				d.append("path", x.getPath)
+				d.append("content", filterHtml(Source.fromFile(x, detector(x)).getLines().toArray).mkString("\n"))
+				resList.add(d)
+				count = count+1
+				log.info("end wenshu chuli:" + x.getPath)
+				if (count == 10000) {
+					log.warn("start insert 10000:")
+					dbColl.insertMany(resList)
+					count = 0
+					resList.clear
+					log.warn("finish insert 10000:")
+				}
+			}catch {
+				case e: Throwable => log.error(e)
+			})
+		log.warn("All done: " + x.getPath)
+		resList
+	}
+	
   def main(args: Array[String]): Unit = {
   	val rootFolder = new File(rootPath)
   	val scheduler = Executors.newFixedThreadPool(8)
   	rootFolder.listFiles.foreach(y => {
   		val r = new Runnable(){
   			override def run(): Unit = {
-  				var resList = new ArrayList[Document]
-  				var count = 0
-		  		y.listFiles().foreach(x => {
-		  		log.warn("new path start:" + x.getPath)		  		
-		  		log.warn("GetAllFiles start: " + x.getPath)
-		  		val files = getAllFiles(x)
-		  		log.warn("GetAllFiles done: " + x.getPath)
-		 			files.foreach(x => 
-			 			try{
-			 				log.info("start wenshu chuli:" + x.getPath)
-		 					var d = new Document
-							val id = getwenshuID(x.getName)
-							if (id != "")	d.append("_id", id)
-							d.append("path", x.getPath)
-							d.append("content", filterHtml(Source.fromFile(x, detector(x)).getLines().toArray).mkString("\n"))
-							resList.add(d)
-							count = count+1
-							log.info("end wenshu chuli:" + x.getPath)
-							if (count == 10000) {
-								log.warn("start insert 10000:")
-								dbColl.insertMany(resList)
-								count = 0
-								resList.clear
-								log.warn("finish insert 10000:")
-							}
-		 				}catch {
-			 				case e: Throwable => log.error(e)
-		 				})
-		 			log.warn("All done: " + x.getPath)
-		 			})
+  			var resList = new ArrayList[Document]
+  			var count = 0
+		  	y.listFiles().foreach(x => resList ++= folderToDocuments(x))
 		 		dbColl.insertMany(resList)
   			}
   		}
