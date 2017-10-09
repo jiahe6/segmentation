@@ -141,6 +141,7 @@ object getershen {
   	f
 	}
 	
+	@deprecated
 	def fenduan(arr: Array[String], fileName: String, outFile: File = null) = {
 		processedData.clear()
 		hashset.clear()
