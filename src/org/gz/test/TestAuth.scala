@@ -16,23 +16,20 @@ import org.apache.spark.SparkConf
 
 object TestAuth {
 
-	val mongoURI = new MongoClientURI("mongodb://gaoze:Dx72000000!@192.168.12.148:27017/?authSource=admin")
+	val mongoURI = new MongoClientURI("mongodb://gaoze:qazwsxedc!@192.168.12.161:27017/?authSource=admin")
 	//val mongoURI = new MongoClientURI("mongodb://192.168.12.148:27017/");
 	lazy val mongo = new MongoClient(mongoURI)
-	private lazy val db = mongo.getDatabase("test")
-	private lazy val dbColl = db.getCollection("test")
+	private lazy val db = mongo.getDatabase("wenshu")
+	private lazy val dbColl = db.getCollection("origin2")
 	
 	def testJavaApi = {
-		val res = dbColl.find()
+		val res = dbColl.find().iterator()
   	import scala.collection.JavaConversions._
-  	res.foreach(x => {
-  		println(x.getString("_id") + ":	" + x.getString("line1"))
-  		
-  	})
+  	println(res.next())
 	}
 	
-  def main(args: Array[String]): Unit = {
-  	val spark = SparkSession.builder()
+	def testSpark = {
+		  	val spark = SparkSession.builder()
 //  		.config("spark.mongodb.input.uri", "mongodb://gaoze:Dx72000000!@192.168.12.148:27017/test.test?authSource=admin")
   		.master("local").getOrCreate()
   	val readConfig = ReadConfig(Map(
@@ -47,5 +44,10 @@ object TestAuth {
   		println(x.getString("_id") + ":	" + x.getString("line1"))
   		
   	})
+
+	}
+	
+  def main(args: Array[String]): Unit = {
+  	testJavaApi
   }
 }
