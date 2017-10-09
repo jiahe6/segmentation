@@ -99,6 +99,7 @@ object ImportOrigin {
 	}
 	
 	def folderToDocuments(x: File) = {
+		assert(x.isDirectory, s"${x.getPath} is not a directory")
 		var resList = new ArrayList[Document]
   	var count = 0
 		log.warn("new path start:" + x.getPath)		  		
