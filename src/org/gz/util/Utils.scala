@@ -5,33 +5,14 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 import scala.collection.JavaConversions._
 import java.net.Inet4Address
-
-class Utils {
-  
-  def getHostID(host: String) = {
-    val dbo = new DBOperation
-    val rs = dbo.search(s"select * from host_info where ip = '$host'")
-    val res = if (rs.next) rs.getInt("host_id") else 0
-    dbo.close
-    res
-  }
-  
-  def getHostIP(hostID: Integer) = {
-    val dbo = new DBOperation
-    val rs = dbo.search(s"select * from host_info where host_id = '$hostID'")
-    val res = if (rs.next) rs.getString("ip") else ""
-    dbo.close    
-    res
-  }
-  
-  def warnExists(host_id: Integer, warnType: Int) = {
-    val dbo = new DBOperation
-    val rs = dbo.search(s"select * from system_log where host_id = $host_id and type = $warnType and solved = 0")
-    val res = if (rs.next) true else false
-    dbo.close
-    res
-  }
-}
+import java.io.File
+import java.io.InputStream
+import java.io.FileInputStream
+import java.io.OutputStream
+import java.io.BufferedOutputStream
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
+import java.io.InputStreamReader
 
 object Utils {
   private[gz] def getIpAddress = {
@@ -60,17 +41,8 @@ object Utils {
     val res = Seq("sh", "-c", s"ping -c 3 $host").!
     if (res==0) true else false
   }
-  
-  private[gz] def getWarnType(funcName: String) = {
-    funcName match {
-      case "getHostAvailabelSpace" => 0
-      case "getAvailableSpace" => 1
-      case "stateChange" => 2
-      case _ => 3
-    }
-  }
 
   def main(args: Array[String]): Unit = {
-    println(getIpAddress)
+    IOUtils.decompressZip(new File("D:/library/wenshu/20170611.rar"), "D:/library/wenshu/testunzip/")
   }
 }
