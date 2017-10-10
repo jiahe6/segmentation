@@ -101,6 +101,7 @@ object ScheduleImport extends Conf{
     			doInsertByTime(cn)
   			}
     }
+  	println("start")
   	scheduler.scheduleAtFixedRate(r, 0, 1, TimeUnit.DAYS)
   }
 }

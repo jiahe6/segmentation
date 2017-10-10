@@ -82,8 +82,27 @@ object ImportOrigin {
   	ssss = rx_style.replaceAllIn(ssss, "")
   	ssss = rx_redundancy.replaceAllIn(ssss, "")
   	ssss = rx.replaceAllIn(ssss, "")
-  	ssss.replaceAll("((\r\n)|\n)[\\s\t ]*(\\1)+", "$1").replaceAll("\u0000", "").replaceAll("^((\r\n)|\n)", "").split("((\r\n)|\n)")
-  	
+  	ssss.replaceAll("((\r\n)|\n)[\\s\t ]*(\\1)+", "$1").replaceAll("\u0000", "").replaceAll("^((\r\n)|\n)", "").split("((\r\n)|\n)")  	
+	}
+	
+	//不大好用？
+	def filterHtml2(arr: Array[String]) = {
+		var ssss = StringEscapeUtils.unescapeHtml4(arr.mkString("\n"))		    
+    // 遍历所有的节点
+		val parser = org.htmlparser.Parser.createParser(new String(ssss.getBytes()), "UTF-8");
+    val nodes = parser.extractAllNodesThatMatch(new org.htmlparser.NodeFilter() {
+        override def accept(node: org.htmlparser.Node) = {
+          true
+        }
+    })
+    var res = new StringBuffer()
+    System.out.println(nodes.size); //打印节点的数量
+    for (i <- 0 until nodes.size){
+    	val nodet = nodes.elementAt(i);
+      println(nodet.getText()); 
+      res.append(new String(nodet.toPlainTextString().getBytes("UTF-8"))+"/n");          
+    }
+    res.toString
 	}
 	
 	def detector(f: File) = {
