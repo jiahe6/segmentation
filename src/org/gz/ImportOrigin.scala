@@ -3,6 +3,7 @@ package org.gz
 import scala.io.Source
 import scala.collection.mutable.HashMap
 import scala.util.matching.Regex
+import scala.sys.process._
 import java.io.File
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashSet
@@ -103,6 +104,14 @@ object ImportOrigin {
       res.append(new String(nodet.toPlainTextString().getBytes("UTF-8"))+"/n");          
     }
     res.toString
+	}
+	
+	//加入了一个python过滤标签的方法
+	def filterHtml3(path: String) = {
+		println("-------------------------------------------------------")		
+		val str = "python3 /home/cloud/htmlparser.py \"" + path + "\""
+		println(str)
+		s"python3 /home/cloud/htmlparser.py $path".!!
 	}
 	
 	def detector(f: File) = {
