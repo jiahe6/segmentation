@@ -20,6 +20,7 @@ import org.bson.Document
 import java.util.ArrayList
 import java.util.concurrent.Executors
 import com.mongodb.client.model.InsertManyOptions
+import com.mongodb.client.MongoCollection
 
 
 /**
@@ -80,8 +81,9 @@ object ImportOrigin {
   	ssss = rx_script.replaceAllIn(ssss, "")
   	ssss = rx_style.replaceAllIn(ssss, "")
   	ssss = rx_redundancy.replaceAllIn(ssss, "")
-  	//ssss = rx.replaceAllIn(ssss, "")
-  	ssss.replaceAll("((\r\n)|\n)[\\s\t ]*(\\1)+", "$1").replaceAll("^((\r\n)|\n)", "").split("((\r\n)|\n)")
+  	ssss = rx.replaceAllIn(ssss, "")
+  	ssss.replaceAll("((\r\n)|\n)[\\s\t ]*(\\1)+", "$1").replaceAll("\u0000", "").replaceAll("^((\r\n)|\n)", "").split("((\r\n)|\n)")
+  	
 	}
 	
 	def detector(f: File) = {
@@ -98,7 +100,7 @@ object ImportOrigin {
 		}
 	}
 	
-	def folderToDocuments(x: File) = {
+	def folderToDocuments(x: File, db: MongoCollection[Document]) = {
 		assert(x.isDirectory, s"${x.getPath} is not a directory")
 		var resList = new ArrayList[Document]
   	var count = 0
@@ -119,7 +121,7 @@ object ImportOrigin {
 				log.info("end wenshu chuli:" + x.getPath)
 				if (count == 10000) {
 					log.warn("start insert 10000:")
-					dbColl.insertMany(resList)
+					db.insertMany(resList)
 					count = 0
 					resList.clear
 					log.warn("finish insert 10000:")
@@ -127,7 +129,13 @@ object ImportOrigin {
 			}catch {
 				case e: Throwable => log.error(e)
 			})
-		log.warn("All done: " + x.getPath)
+		try{
+			db.insertMany(resList)
+		} catch {
+			case e: Throwable => log.error(e)
+			e.printStackTrace
+		}
+		log.warn("All done: " + x.getPath)		
 		resList
 	}
 	
@@ -137,10 +145,7 @@ object ImportOrigin {
   	rootFolder.listFiles.foreach(y => {
   		val r = new Runnable(){
   			override def run(): Unit = {
-  			var resList = new ArrayList[Document]
-  			var count = 0
-		  	y.listFiles().foreach(x => resList ++= folderToDocuments(x))
-		 		dbColl.insertMany(resList)
+  			y.listFiles().foreach(x => folderToDocuments(x, dbColl))
   			}
   		}
   		scheduler.execute(r)

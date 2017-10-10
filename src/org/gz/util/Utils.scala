@@ -43,6 +43,6 @@ object Utils {
   }
 
   def main(args: Array[String]): Unit = {
-    IOUtils.decompressZip(new File("D:/library/wenshu/20170611.rar"), "D:/library/wenshu/testunzip/")
+    IOUtils.decompressZip(new File("D:/library/wenshu/20170612.rar"), "D:/library/wenshu/20170612/")
   }
 }

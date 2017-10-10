@@ -14,6 +14,9 @@ import org.gz.util.IOUtils
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import org.gz.ImportOrigin
+import org.bson.Document
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  * 定期导入程序
@@ -37,8 +40,7 @@ object ScheduleImport extends Conf{
 		else (config.getString("importwenshu.linuxrarpath"), config.getString("importwenshu.linuxwenshupath"))
 	
 	def DownloadRar(day: String) = {		
-		val res = {new URL("http://wenshu.court.gov.cn/DownLoad/FileDownLoad.aspx?action=1&userName=dsjyjy&pwd=yjy201611&dates=" + day) #> new File(wenshuRarPath + day + ".rar") !}
-		println(res)
+		{new URL("http://wenshu.court.gov.cn/DownLoad/FileDownLoad.aspx?action=1&userName=dsjyjy&pwd=yjy201611&dates=" + day) #> new File(wenshuRarPath + day + ".rar") !}
 	}
 	
 	def unzipRar(day: String) = {
@@ -54,45 +56,49 @@ object ScheduleImport extends Conf{
 	def insertOld() = {		
     val runa = new Runnable(){
       override def run(): Unit = {
-      	try {
-					if (c.after(c2))
-      			doInsertByTime(c2)
-      	} catch {
-      		case e: Throwable => log.error(s"return error when doInsertByTime at:\t+ ${c2.getTime}")
-      	}
+				if (c.after(c2))
+     			doInsertByTime(c2)
       }
     }
 		val scheduler = Executors.newScheduledThreadPool(1)
     val sf = scheduler.scheduleAtFixedRate(runa, 0, 180, TimeUnit.SECONDS)
     scheduler
   }
-
+	
   def doInsertByTime(cal: Calendar) = {
-  	//下载zip包
-  	DownloadRar(sdf.format(cal.getTime))        		        	
- 		log.info(s"Downloaded wenshu${sdf.format(cal.getTime)} at " + new Date(System.currentTimeMillis))
- 		//解压zip包
-  	unzipRar(sdf.format(cal.getTime))
-  	//+1s
-  	cal.add(Calendar.DAY_OF_MONTH, 1)
-  	//写到芒果里
-  	val list = ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"))
-  	dbColl.insertMany(list)
+  	try{
+  		//如果zip包已经存在，那么啥也不干
+  		val f = new File(wenshuRarPath + sdf.format(cal.getTime) + ".rar")
+  		assert(!f.exists(), "压缩包已存在，不进行下面操作")
+	  	//下载zip包
+	  	DownloadRar(sdf.format(cal.getTime))        		        	
+	 		log.info(s"Downloaded wenshu${sdf.format(cal.getTime)} at " + new Date(System.currentTimeMillis))
+	 		Thread.sleep(5000)	 		
+	 		//解压zip包
+	  	unzipRar(sdf.format(cal.getTime))
+	  	log.info("unziped wenshu")
+	  	//写到芒果里
+	  	ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl)	  	
+  	} catch {
+  		case e: Throwable => 
+  			log.error(e)
+  			e.printStackTrace
+  	} finally {
+  		//+1s
+	 		cal.add(Calendar.DAY_OF_MONTH, 1)
+  	}
   }
 	
   def main(args: Array[String]): Unit = {
   	val so = insertOld  	
   	val cn = Calendar.getInstance
 		cn.setTime(sdf.parse(sdf.format(new Date(System.currentTimeMillis()))))
+		cn.add(Calendar.DAY_OF_MONTH, -1)
     val scheduler = Executors.newScheduledThreadPool(1)
   		val r = new Runnable(){
   			override def run(): Unit = {
   				if (!c.after(c2)) so.shutdown
-  				try {					
-      			doInsertByTime(cn)
-	      	} catch {
-      			case e: Throwable => log.error(s"return error when doInsertByTime at:\t+ ${cn.getTime}")
-      		}
+    			doInsertByTime(cn)
   			}
     }
   	scheduler.scheduleAtFixedRate(r, 0, 1, TimeUnit.DAYS)

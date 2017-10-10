@@ -20,6 +20,7 @@ object IOUtils {
   		var os: OutputStream = null
   		var inputStream: InputStreamReader = null
   		var outWriter: OutputStreamWriter = null
+  		println(source.getPath)
 			val zipFile = new ZipFile(source, sourceCharacters)
 			var entries = zipFile.getEntries
 			
@@ -29,6 +30,7 @@ object IOUtils {
 				else if (entry != null) {
   				try{
   					val name = entry.getName
+  					println(name)
   					val path = dest + name
   					var content = new Array[Char](entry.getSize.toInt)  					
   					inputStream = new InputStreamReader(zipFile.getInputStream(entry), sourceCharacters)
@@ -41,14 +43,14 @@ object IOUtils {
   				} catch {
 		  			case e: Throwable => e.printStackTrace()
 		  		}finally{
-						if (os != null){
-							os.flush
-							os.close
-						}
-						if (outWriter != null){
+		  			if (outWriter != null){
 							outWriter.flush
 							outWriter.close
 						}
+						if (os != null){
+							os.flush
+							os.close
+						}						
 						if (inputStream != null) inputStream.close
 					}
   			})
