@@ -60,7 +60,7 @@ object ScheduleImport extends Conf{
      			doInsertByTime(c2)
       }
     }
-		val scheduler = Executors.newScheduledThreadPool(1)
+		val scheduler = Executors.newScheduledThreadPool(5)
     val sf = scheduler.scheduleAtFixedRate(runa, 0, 180, TimeUnit.SECONDS)
     scheduler
   }
