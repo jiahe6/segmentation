@@ -28,13 +28,15 @@ object ScheduleImport extends Conf{
 	lazy val mongo = new MongoClient(mongoURI)
 	private lazy val db = mongo.getDatabase("updatesdata")
 	private lazy val dbColl = db.getCollection("newdata")
+	val scheduler = Executors.newScheduledThreadPool(5)
 	
+	//计时器，插入旧数据时使用
 	val c = Calendar.getInstance
 	c.setTime(sdf.parse(sdf.format(new Date(System.currentTimeMillis()))))
-	
-	def getStartTime = config.getString("importwenshu.starttime")
 	val c2 = Calendar.getInstance
 	c2.setTime(sdf.parse(getStartTime))
+	
+	def getStartTime = config.getString("importwenshu.starttime")
 	val (wenshuRarPath, wenshuPath) = 
 		if(System.getProperty("os.name").toLowerCase().startsWith("win")) (config.getString("importwenshu.winrarpath"), config.getString("importwenshu.winwenshupath")) 
 		else (config.getString("importwenshu.linuxrarpath"), config.getString("importwenshu.linuxwenshupath"))
@@ -53,19 +55,19 @@ object ScheduleImport extends Conf{
 		}
 	}
 	
-	def insertOld() = {		
+	def insertOld() = {
     val runa = new Runnable(){
       override def run(): Unit = {
 				if (c.after(c2))
      			doInsertByTime(c2)
       }
-    }
-		val scheduler = Executors.newScheduledThreadPool(5)
+    }		
     val sf = scheduler.scheduleAtFixedRate(runa, 0, 180, TimeUnit.SECONDS)
-    scheduler
+    sf
   }
 	
   def doInsertByTime(cal: Calendar) = {
+  	println(sdf.format(cal.getTime))
   	try{
   		//如果zip包已经存在，那么啥也不干
   		val f = new File(wenshuRarPath + sdf.format(cal.getTime) + ".rar")
@@ -80,7 +82,8 @@ object ScheduleImport extends Conf{
 	  	//写到芒果里
 	  	ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl)	  	
   	} catch {
-  		case e: Throwable => 
+  		case e: Throwable =>
+  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
   			log.error(e)
   			e.printStackTrace
   	} finally {
@@ -88,19 +91,33 @@ object ScheduleImport extends Conf{
 	 		cal.add(Calendar.DAY_OF_MONTH, 1)
   	}
   }
-	
+   	
   def main(args: Array[String]): Unit = {
   	val so = insertOld  	
-  	val cn = Calendar.getInstance
+  	//按天进行更新工作
+  	val cn = Calendar.getInstance  	
 		cn.setTime(sdf.parse(sdf.format(new Date(System.currentTimeMillis()))))
 		cn.add(Calendar.DAY_OF_MONTH, -1)
-    val scheduler = Executors.newScheduledThreadPool(1)
-  		val r = new Runnable(){
-  			override def run(): Unit = {
-  				if (!c.after(c2)) so.shutdown
-    			doInsertByTime(cn)
+		//按周进行备份工作,由于cn是前一天的计时器，所以在周日执行备份的话，需要把定时器设为前一天，即周6
+		val cw = Calendar.getInstance  	
+		cw.setTime(sdf.parse("20171007"))
+		while (cn.after(cw)){
+			cw.add(Calendar.WEEK_OF_MONTH, 1)
+		}
+		val r = new Runnable(){
+			override def run(): Unit = {
+				if (!c.after(c2)) so.cancel(false)
+				//calendar+1在doinsertbytime里
+  			doInsertByTime(cn)
+  			//TODO： 进行数据处理
+  			//TODO： 处理完毕后插入到origin2和forsearch中    			
+  			//TODO： 要确保插入完了进行备份，所以单线程执行备份
+  			if (cw.equals(cn)) {
+  				ScheduleBackup.doBackUp(cw)
+  				cw.add(Calendar.WEEK_OF_MONTH, 1)
   			}
-    }
+			}
+  	}
   	println("start")
   	scheduler.scheduleAtFixedRate(r, 0, 1, TimeUnit.DAYS)
   }
