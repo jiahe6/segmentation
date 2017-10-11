@@ -205,29 +205,16 @@ object SegWithOrigin2 extends Conf{
     			"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-core-3.4.2.jar",
     			"hdfs://192.168.12.161:9000/mongolib/commons-io-2.5.jar",
     			"hdfs://192.168.12.161:9000/segwithorigin2.jar")))
- //  	  .config(new SparkConf().setJars(Array("/home/cloud/origin/originwenshu_lib/mongo-spark-connector_2.11-2.0.0.jar")))
     	.config("spark.cores.max", 80)		
     	.config("spark.executor.cores", 16)
     	.config("spark.executor.memory", "32g")
     	.config("spark.mongodb.input.uri", "mongodb://192.168.12.161:27017/wenshu.ershen")
  //   	.config("spark.mongodb.output.uri", "mongodb://192.168.12.161:27017/wenshu.origin2")
- //   	.config("spark.mongodb.input.partitioner", "MongoShardedPartitioner")
     	.getOrCreate()
     
 //   	val readConf = ReadConfig("wenshu", "origin2", connectionString = Some("mongodb://192.168.12.161:27017"))
    	val rdd = MongoSpark.builder().sparkSession(spark).build.toRDD()
 //    .pipeline(Seq(`match`(eqq("basiclabel.procedure", "二审"))))   	
-//   	val df = MongoSpark.load(spark)
-//   	val sfs = segBase.map(y => {
-//   			StructField(y.name, StringType, true)
-//   		}).toArray
-//   	val st = StructType(sfs)
-//   	val sf = StructField("segdata2", st, true)
-//   	df.rdd.map{ x => {
-//   		val pd = segment(x(x.fieldIndex("content")).toString().split("\n"))
-//   		
-//   		
-//   	}}
    	rdd.cache()
    	println(rdd.count())
    	val c = 11.toChar
@@ -240,14 +227,5 @@ object SegWithOrigin2 extends Conf{
    		}
    	}}
     mongo.close()
-//  	MongoSpark.save(rdd)
-//  	println(rdd.collect().size)
-//   	import spark.implicits._
-//   	rdd.foreach { x => {
-//   		val id = x.get("_id")
-//   		dbColl.updateOne(eqq("_id", id), set("basiclabel", updateBL(x))) 		
-//   	}}
-  	
-//   	val docs = rdd.map { doc => doc.get("分段结果", classOf[java.util.List[String]])}	  
 	}
 }
