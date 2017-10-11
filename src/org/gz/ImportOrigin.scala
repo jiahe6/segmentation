@@ -121,7 +121,7 @@ object ImportOrigin {
 		}catch {
 			case e: Throwable => log.error(e)
 		}
-		log.info(cs.toString() + ":\t" + f.getName)
+//		log.info(cs.toString() + ":\t" + f.getName)
 		cs.toString() match {
 			case "UTF-8" => "UTF-8"
 			case _ => "GBK"
@@ -138,7 +138,7 @@ object ImportOrigin {
 		log.warn("GetAllFiles done: " + x.getPath)
 		files.foreach(x => 
 			try{
-				log.info("start wenshu chuli:" + x.getPath)
+				//log.info("start wenshu chuli:" + x.getPath)
 				var d = new Document
 				val id = getwenshuID(x.getName)
 				if (id != "")	d.append("_id", id)
@@ -146,10 +146,10 @@ object ImportOrigin {
 				d.append("content", filterHtml(Source.fromFile(x, detector(x)).getLines().toArray).mkString("\n"))
 				resList.add(d)
 				count = count+1
-				log.info("end wenshu chuli:" + x.getPath)
+				//log.info("end wenshu chuli:" + x.getPath)
 				if (count == 10000) {
 					log.warn("start insert 10000:")
-					db.insertMany(resList)
+					db.insertMany(resList, new InsertManyOptions().ordered(false))
 					count = 0
 					resList.clear
 					log.warn("finish insert 10000:")
@@ -158,7 +158,7 @@ object ImportOrigin {
 				case e: Throwable => log.error(e)
 			})
 		try{
-			db.insertMany(resList)
+			db.insertMany(resList, new InsertManyOptions().ordered(false))
 		} catch {
 			case e: Throwable => log.error(e)
 			e.printStackTrace
