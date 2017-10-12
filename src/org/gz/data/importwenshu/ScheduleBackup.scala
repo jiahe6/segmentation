@@ -6,6 +6,10 @@ import org.apache.spark.SparkConf
 import com.mongodb.spark.MongoSpark
 import com.mongodb.MongoClientURI
 import com.mongodb.MongoClient
+import com.mongodb.client.model.Filters.regex
+import com.mongodb.client.model.Filters.{eq => eqq}
+import com.mongodb.client.model.Updates._
+import com.mongodb.client.model.Aggregates._
 
 object ScheduleBackup {
 	// 	System.setProperty("hadoop.home.dir", "D:/hadoop-common")
@@ -38,8 +42,9 @@ object ScheduleBackup {
   	val rdd = MongoSpark.builder().sparkSession(spark).build.toRDD()
   	rdd.cache()
    	println(rdd.count())
-   	rdd.foreach{x => 
-   		dbColl.insertOne(x)
+   	rdd.foreach{x =>    		
+   		dbColl.updateOne(eqq("_id", x.get("_id")), x)
+   		//dbColl2.updateOne(eqq("_id", x.get("_id")), x)
    	}
   }
 }
