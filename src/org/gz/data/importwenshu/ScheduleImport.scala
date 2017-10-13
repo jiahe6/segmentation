@@ -66,30 +66,49 @@ object ScheduleImport extends Conf{
     sf
   }
 	
+	def doInsert(cal: Calendar) = {
+		//下载zip包
+		DownloadRar(sdf.format(cal.getTime))        		        	
+	 	log.info(s"Downloaded wenshu${sdf.format(cal.getTime)} at " + new Date(System.currentTimeMillis))
+	 	Thread.sleep(5000)	 		
+	 	//解压zip包
+	  unzipRar(sdf.format(cal.getTime))
+	  log.info("unziped wenshu")
+	  //写到芒果里
+	  ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl)
+	}
+	
   def doInsertByTime(cal: Calendar) = {
   	println(sdf.format(cal.getTime))
-  	try{
-  		//如果zip包已经存在，那么啥也不干
-  		val f = new File(wenshuRarPath + sdf.format(cal.getTime) + ".rar")
-  		assert(!f.exists(), "压缩包已存在，不进行下面操作")
-	  	//下载zip包
-	  	DownloadRar(sdf.format(cal.getTime))        		        	
-	 		log.info(s"Downloaded wenshu${sdf.format(cal.getTime)} at " + new Date(System.currentTimeMillis))
-	 		Thread.sleep(5000)	 		
-	 		//解压zip包
-	  	unzipRar(sdf.format(cal.getTime))
-	  	log.info("unziped wenshu")
-	  	//写到芒果里
-	  	ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl)	  	
-  	} catch {
-  		case e: Throwable =>
-  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
-  			log.error(e)
-  			e.printStackTrace
-  	} finally {
-  		//+1s
-	 		cal.add(Calendar.DAY_OF_MONTH, 1)
-  	}
+  	var attempt = 0
+  	var flag = false
+  	val f = new File(wenshuRarPath + sdf.format(cal.getTime) + ".rar")
+  	//如果zip包已经存在，那么啥也不干
+  	if (!f.exists)
+		  while (!flag){
+		  	try{
+		  		attempt = attempt + 1	 
+		  		//插入数据
+			  	doInsert(cal)
+		  		//执行成功了直接结束
+			  	flag = true
+		  	} catch {
+		  		case e: java.util.zip.ZipException =>
+		  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
+		  			log.error(e)
+		  			//最高法数据有问题，先睡个1分钟，再重试，重试次数多了就算了
+		  			if (attempt < 4) Thread.sleep(60000) else {
+		  				flag = true
+		  				log.error(s"Error after 4 attempts at ${sdf.format(cal.getTime)}, check the wenshu.court.gov.cn source to know if the origin zip pack is null")
+		  			}		  			
+		  		case e: Throwable =>
+		  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
+		  			log.error(e)
+		  			e.printStackTrace
+		  	} 
+	  	}
+  	//+1s
+		cal.add(Calendar.DAY_OF_MONTH, 1)
   }
    	
   def main(args: Array[String]): Unit = {
@@ -118,6 +137,7 @@ object ScheduleImport extends Conf{
   			}
 			}
   	}
+		Thread.sleep(5000)
   	println("start")
   	scheduler.scheduleAtFixedRate(r, 0, 1, TimeUnit.DAYS)
   }
