@@ -149,7 +149,12 @@ object ImportOrigin {
 				//log.info("end wenshu chuli:" + x.getPath)
 				if (count == 10000) {
 					log.warn("start insert 10000:")
-					db.insertMany(resList, new InsertManyOptions().ordered(false))
+					try{
+						//如果这里不加try,catch会导致出一次错resList就不清空了，这样以后插入就全是duplicate key
+						db.insertMany(resList, new InsertManyOptions().ordered(false))
+					}catch{
+						case e: Throwable => log.error(e)
+					}
 					count = 0
 					resList.clear
 					log.warn("finish insert 10000:")
