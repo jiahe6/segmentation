@@ -17,6 +17,8 @@ import org.gz.ImportOrigin
 import org.bson.Document
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import org.apache.commons.compress.archivers.zip.ZipFile
+import sun.security.jca.GetInstance
 
 /**
  * 定期导入程序
@@ -66,7 +68,7 @@ object ScheduleImport extends Conf{
     sf
   }
 	
-	def doInsert(cal: Calendar) = {
+	private def doInsert(cal: Calendar) = {
 		//下载zip包
 		DownloadRar(sdf.format(cal.getTime))        		        	
 	 	log.info(s"Downloaded wenshu${sdf.format(cal.getTime)} at " + new Date(System.currentTimeMillis))
@@ -78,35 +80,56 @@ object ScheduleImport extends Conf{
 	  ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl)
 	}
 	
+	/**
+	 * 修复下载错误的Zip包
+	 * 需要隔一段时间定时运行一下，毕竟那个验证码出来了即使重试了3词依旧会有错误包
+	 */
+	def fixErrorZip = {
+		//打不开的rar
+		val cal = Calendar.getInstance
+		cal.setTime(sdf.parse("20170101"))
+		while (cal.before(c2)){
+			try{
+				val path = wenshuRarPath + s"${sdf.format(cal.getTime)}.rar"
+				val zipFile = new ZipFile(new File(path), "GBK")
+				zipFile.close()
+			}catch {
+				case e: java.util.zip.ZipException =>
+					doInsertByTime(cal)
+					e.printStackTrace()
+				case e2: Throwable => e2.printStackTrace
+			}
+			cal.add(Calendar.DAY_OF_MONTH, 1)
+		}
+	}
+	
   def doInsertByTime(cal: Calendar) = {
   	println(sdf.format(cal.getTime))
   	var attempt = 0
-  	var flag = false
-  	val f = new File(wenshuRarPath + sdf.format(cal.getTime) + ".rar")
+  	var flag = false  	
   	//如果zip包已经存在，那么啥也不干
-  	if (!f.exists)
-		  while (!flag){
-		  	try{
-		  		attempt = attempt + 1	 
-		  		//插入数据
-			  	doInsert(cal)
-		  		//执行成功了直接结束
-			  	flag = true
-		  	} catch {
-		  		case e: java.util.zip.ZipException =>
-		  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
-		  			log.error(e)
-		  			//最高法数据有问题，先睡个1分钟，再重试，重试次数多了就算了
-		  			if (attempt < 4) Thread.sleep(60000) else {
-		  				flag = true
-		  				log.error(s"Error after 4 attempts at ${sdf.format(cal.getTime)}, check the wenshu.court.gov.cn source to know if the origin zip pack is null")
-		  			}		  			
-		  		case e: Throwable =>
-		  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
-		  			log.error(e)
-		  			e.printStackTrace
-		  	} 
-	  	}
+	  while (!flag){
+	  	try{
+	  		attempt = attempt + 1	 
+	  		//插入数据
+		  	doInsert(cal)
+	  		//执行成功了直接结束
+		  	flag = true
+	  	} catch {
+	  		case e: java.util.zip.ZipException =>
+	  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
+	  			log.error(e)
+	  			//最高法数据有问题，先睡个1分钟，再重试，重试次数多了就算了
+	  			if (attempt < 4) Thread.sleep(60000) else {
+	  				flag = true
+	  				log.error(s"Error after 4 attempts at ${sdf.format(cal.getTime)}, check the wenshu.court.gov.cn source to know if the origin zip pack is null")
+	  			}		  			
+	  		case e: Throwable =>
+	  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
+	  			log.error(e)
+	  			e.printStackTrace
+	  	} 
+  	}
   	//+1s
 		cal.add(Calendar.DAY_OF_MONTH, 1)
   }
@@ -127,7 +150,11 @@ object ScheduleImport extends Conf{
 			override def run(): Unit = {
 				if (!c.after(c2)) so.cancel(false)
 				//calendar+1在doinsertbytime里
-  			doInsertByTime(cn)
+				val f = new File(wenshuRarPath + sdf.format(cn.getTime) + ".rar")
+				if (!f.exists())
+  				doInsertByTime(cn)
+  			else
+  				log.warn("file exist!")
   			//TODO： 进行数据处理
   			//TODO： 处理完毕后插入到origin2和forsearch中    			
   			//TODO： 要确保插入完了进行备份，所以单线程执行备份

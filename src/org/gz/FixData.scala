@@ -14,6 +14,8 @@ import org.bson.Document
 import java.util.ArrayList
 import com.mongodb.client.model.InsertManyOptions
 import org.apache.logging.log4j.LogManager
+import org.gz.data.importwenshu.ScheduleImport
+import org.gz.util.MongoAdminAuth
 
 /**
  * @author cloud
@@ -59,16 +61,19 @@ object FixData extends Conf{
 	}
 		
 	/**
-	 * 这玩意贼慢，慢到我也不知道得多久，尽量少用
+	 * 这玩意贼慢，大概跑2天，慎用
 	 */
 	def fixDeletedData = {
-		val mongoURI = new MongoClientURI("mongodb://gaoze:qazwsxedc!@192.168.12.161:27017/?authSource=admin")
+		println("start fix data")		
+		val mongoURI = new MongoClientURI(s"mongodb://${config.getString("mongo.cluster.user")}:${config.getString("mongo.cluster.passwd")}@192.168.12.161:27017/?authSource=admin")
 		val mongo = new MongoClient(mongoURI)
 		val db = mongo.getDatabase("wenshu")
-		val dborigin2 = db.getCollection("origin")
+		val dborigin2 = db.getCollection("origin2")
 		val dbnewdata = mongo.getDatabase("updatesdata").getCollection("newdata")
-		val rootf = new File(config.getString("importwenshu.linuxwenshupath"))
+		val dbfixdata = mongo.getDatabase("updatesdata").getCollection("fixdata")
+		val rootf = new File(config.getString("importwenshu.linuxwenshupath"))		
 		rootf.listFiles.foreach(f => {
+			println("start processing folder: " + f.getPath)
 			val files = ImportOrigin.getAllFiles(f)
 			var resList = new ArrayList[Document]
 			var count = 0
@@ -86,7 +91,7 @@ object FixData extends Conf{
 								resList.add(d)
 								count = count+1
 								if (count == 10000) {
-									dbnewdata.insertMany(resList, new InsertManyOptions().ordered(false))
+									dbfixdata.insertMany(resList, new InsertManyOptions().ordered(false))
 									count = 0
 									resList.clear
 									log.warn("finish insert 10000:")
@@ -97,16 +102,18 @@ object FixData extends Conf{
 				}
 			)
 			try{
-				dbnewdata.insertMany(resList, new InsertManyOptions().ordered(false))
+				if (resList.size > 0) dbfixdata.insertMany(resList, new InsertManyOptions().ordered(false))
 				resList.clear()
 			} catch {
 				case e: Throwable => log.error(e)
 				e.printStackTrace
 			}
 		})
+		mongo.close
 	}
 	
   def main(args: Array[String]): Unit = {
-
+  	//fixDeletedData
+  	ScheduleImport.fixErrorZip  	
   }
 }
