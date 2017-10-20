@@ -15,6 +15,12 @@ import org.apache.logging.log4j.LogManager
 import com.mongodb.client.model.UpdateOptions
 import com.typesafe.config.ConfigFactory
 import org.gz.util.Conf
+import org.apache.spark.storage.StorageLevel
+import java.util.ArrayList
+import org.bson.Document
+import com.mongodb.InsertOptions
+import com.mongodb.client.model.InsertManyOptions
+import scala.collection.JavaConverters._
 
 object ScheduleBackup extends Conf{
 	// 	System.setProperty("hadoop.home.dir", "D:/hadoop-common")
@@ -33,7 +39,7 @@ object ScheduleBackup extends Conf{
 		.config("spark.cores.max", 80)		
 		.config("spark.executor.cores", 16)
 		.config("spark.executor.memory", "32g")
-		.config("spark.mongodb.input.uri", s"mongodb://${user}:${passwd}@192.168.12.161:27017/wenshu.casetype_yy?authSource=${authDB}")
+		.config("spark.mongodb.input.uri", s"mongodb://${user}:${passwd}@192.168.12.161:27017/wenshu.origin2?authSource=${authDB}")
 		.config("spark.mongodb.output.uri", s"mongodb://${user}:${passwd}@192.168.12.160:27017/wenshu.backup?authSource=${authDB}")
 		.config("spark.mongodb.input.partitionerOptions.samplesPerPartition", 1)
 		.getOrCreate()
@@ -62,7 +68,7 @@ object ScheduleBackup extends Conf{
   	val rdd = MongoSpark.builder().sparkSession(spark).build().toRDD()
 //  	val df = MongoSpark.builder().sparkSession(spark).build.toDF
 //  	MongoSpark.save(df.write)
-  	rdd.cache()
+  	rdd.persist(StorageLevel.MEMORY_AND_DISK)
    	println(rdd.count())  
    	val uri = s"mongodb://${user}:${passwd}@192.168.12.161:27017/?authSource=${authDB}"
    	val uri2 = s"mongodb://${config.getString("mongo.backup.user")}:${config.getString("mongo.backup.passwd")}@192.168.12.160:27017/?authSource=${config.getString("mongo.backup.authDB")}"
@@ -76,12 +82,19 @@ object ScheduleBackup extends Conf{
 			val mongoURI2 = new MongoClientURI(uri2)
 			val mongo2 = new MongoClient(mongoURI2)
 			val db2 = mongo2.getDatabase("wenshu")
-			val dbColl2 = db2.getCollection(backName)
-
-			x.foreach { y => 
-				dbColl.replaceOne(eqq("_id", y.get("_id")), y, new UpdateOptions().upsert(true))
-				dbColl2.insertOne(y)
-  		}
+			val dbColl2 = db2.getCollection(backName)			
+			x.foreach(y => {
+				try{
+					dbColl.replaceOne(eqq("_id", y.get("_id")), y, new UpdateOptions().upsert(true))
+				}catch{
+					case e: Throwable => e.printStackTrace()
+				}					
+			})
+			try{
+				dbColl2.insertMany(x.toList.asJava, new InsertManyOptions().ordered(false))
+			}catch{
+				case e: Throwable => e.printStackTrace()
+			}
   		mongo.close
   		mongo2.close
   	} }
