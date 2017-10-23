@@ -82,19 +82,34 @@ object ScheduleBackup extends Conf{
 			val mongoURI2 = new MongoClientURI(uri2)
 			val mongo2 = new MongoClient(mongoURI2)
 			val db2 = mongo2.getDatabase("wenshu")
-			val dbColl2 = db2.getCollection(backName)			
+			val dbColl2 = db2.getCollection(backName)
+			
+			var count = 0
+			var resList = new ArrayList[Document]
 			x.foreach(y => {
+				count = count + 1
+				resList add y
 				try{
 					dbColl.replaceOne(eqq("_id", y.get("_id")), y, new UpdateOptions().upsert(true))
 				}catch{
 					case e: Throwable => e.printStackTrace()
-				}					
+				}
+				if (count == 10000){
+					try{					
+						dbColl2.insertMany(resList, new InsertManyOptions().ordered(false))
+					}catch{
+						case e: Throwable => e.printStackTrace()
+					}
+					resList.clear
+					count = 0
+				}
 			})
-			try{
-				dbColl2.insertMany(x.toList.asJava, new InsertManyOptions().ordered(false))
-			}catch{
-				case e: Throwable => e.printStackTrace()
-			}
+			if (count > 0)
+				try{					
+					dbColl2.insertMany(resList, new InsertManyOptions().ordered(false))
+				}catch{
+					case e: Throwable => e.printStackTrace()
+				}
   		mongo.close
   		mongo2.close
   	} }

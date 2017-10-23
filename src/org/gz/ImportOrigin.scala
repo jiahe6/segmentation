@@ -162,12 +162,13 @@ object ImportOrigin {
 			}catch {
 				case e: Throwable => log.error(e)
 			})
-		try{
-			db.insertMany(resList, new InsertManyOptions().ordered(false))
-		} catch {
-			case e: Throwable => log.error(e)
-			e.printStackTrace
-		}
+		if (count > 0)
+			try{
+				db.insertMany(resList, new InsertManyOptions().ordered(false))
+			} catch {
+				case e: Throwable => log.error(e)
+				e.printStackTrace
+			}
 		log.warn("All done: " + x.getPath)		
 		resList
 	}
