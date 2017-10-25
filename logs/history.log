@@ -3725,3 +3725,23 @@
 2017-10-24 at 13:06:41 CST ERROR org.gz.data.importwenshu.ScheduleBackup$ 58 doBackUp - drop3周前的表失败
 2017-10-24 at 15:42:48 CST ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败
 2017-10-24 at 15:45:44 CST ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败
+2017-10-25 at 15:36:23 CST INFO  org.gz.data.importwenshu.ScheduleImport$ 84 doInsert - Downloaded wenshu20171023 at Wed Oct 25 15:36:23 CST 2017
+2017-10-25 at 15:36:28 CST INFO  org.gz.data.importwenshu.ScheduleImport$ 63 unzipRar - start unzip file: D:/library/wenshu/test/test/20171023.rar
+2017-10-25 at 15:37:25 CST INFO  org.gz.data.importwenshu.ScheduleImport$ 88 doInsert - unziped wenshu
+2017-10-25 at 15:37:26 CST WARN  org.gz.ImportOrigin$ 135 folderToDocuments - new path start:D:\library\wenshu\test\test\20171023
+2017-10-25 at 15:37:26 CST WARN  org.gz.ImportOrigin$ 136 folderToDocuments - GetAllFiles start: D:\library\wenshu\test\test\20171023
+2017-10-25 at 15:37:28 CST WARN  org.gz.ImportOrigin$ 138 folderToDocuments - GetAllFiles done: D:\library\wenshu\test\test\20171023
+2017-10-25 at 15:37:42 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+2017-10-25 at 15:38:17 CST ERROR org.gz.ImportOrigin$$anonfun$folderToDocuments$2 152 apply - com.mongodb.MongoBulkWriteException: Bulk write operation error on server 192.168.12.161:27017. Write errors: [BulkWriteError{index=7048, code=11000, message='E11000 duplicate key error collection: updatesdata.newdata index: _id_ dup key: { : "ad0165de-a933-458a-9da0-a77500af489f" }', details={ }}]. 
+2017-10-25 at 15:38:17 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+2017-10-25 at 15:38:29 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+2017-10-25 at 15:38:42 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+2017-10-25 at 15:38:54 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+2017-10-25 at 15:39:01 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+2017-10-25 at 15:39:11 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+2017-10-25 at 15:39:22 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+2017-10-25 at 15:39:33 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+2017-10-25 at 15:39:50 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+2017-10-25 at 15:40:00 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+2017-10-25 at 15:40:06 CST WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+2017-10-25 at 15:40:14 CST WARN  org.gz.ImportOrigin$ 172 folderToDocuments - All done: D:\library\wenshu\test\test\20171023

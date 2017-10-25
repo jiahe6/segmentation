@@ -68,7 +68,7 @@ object ScheduleBackup extends Conf{
 		}catch{
 			case e: Throwable => log.error("drop3周前的表失败") 
 		}
-  	val rdd = MongoSpark.builder().sparkSession(spark).pipeline(Seq(`match`(eqq("basiclabel.casecause", "盗窃罪")))).build().toRDD()
+  	val rdd = MongoSpark.builder().sparkSession(spark).build().toRDD()
   	rdd.persist(StorageLevel.MEMORY_AND_DISK)
    	println(rdd.count())   	
    	val uri = muu.clusterMongoURI
@@ -78,8 +78,7 @@ object ScheduleBackup extends Conf{
 			val mongo = new MongoClient(mongoURI)
 			val db = mongo.getDatabase("wenshu")
 			val dbColl = db.getCollection("origin")
-			
-			//val mongoURI2 = new MongoClientURI(s"mongodb://${config.getString("mongo.backup.user")}:${config.getString("mongo.backup.user")}@192.168.12.160:27017/?authSource=${config.getString("mongo.backup.user")}")
+						
 			val mongoURI2 = new MongoClientURI(uri2)
 			val mongo2 = new MongoClient(mongoURI2)
 			val db2 = mongo2.getDatabase("wenshu")
@@ -88,29 +87,32 @@ object ScheduleBackup extends Conf{
 			var count = 0
 			var resList = new ArrayList[Document]
 			x.foreach(y => {
-				count = count + 1
-				resList add y
+//				count = count + 1
+//				resList add y
 				try{
 					dbColl.replaceOne(eqq("_id", y.get("_id")), y, new UpdateOptions().upsert(true))
+					dbColl2.insertOne(y)
 				}catch{
 					case e: Throwable => e.printStackTrace()
 				}
-				if (count == 10000){
-					try{					
-						dbColl2.insertMany(resList, new InsertManyOptions().ordered(false))
-					}catch{
-						case e: Throwable => e.printStackTrace()
-					}
-					resList.clear
-					count = 0
-				}
+				
+//				使用这种方式插入会导致插入的数据和真实数据数量对应不上， 先注释掉有机会再找原因
+//				if (count == 10000){
+//					try{					
+//						dbColl2.insertMany(resList, new InsertManyOptions().ordered(false))
+//					}catch{
+//						case e: Throwable => e.printStackTrace()
+//					}
+//					resList.clear
+//					count = 0
+//				}
 			})
-			if (count > 0)
-				try{					
-					dbColl2.insertMany(resList, new InsertManyOptions().ordered(false))
-				}catch{
-					case e: Throwable => e.printStackTrace()
-				}
+//			if (count > 0)
+//				try{					
+//					dbColl2.insertMany(resList, new InsertManyOptions().ordered(false))
+//				}catch{
+//					case e: Throwable => e.printStackTrace()
+//				}
   		mongo.close
   		mongo2.close
   	} }
@@ -118,7 +120,7 @@ object ScheduleBackup extends Conf{
 	
 	def main(args: Array[String]): Unit = {
 		val c = Calendar.getInstance
-		c.setTime(sdf.parse("20171015"))
+		c.setTime(sdf.parse("20171024"))
 	 	doBackUp(c)
 	 	//150217
 	}

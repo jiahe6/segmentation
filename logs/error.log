@@ -3725,3 +3725,4 @@
 13:06:41.458 ERROR org.gz.data.importwenshu.ScheduleBackup$ 58 doBackUp - drop3周前的表失败
 15:42:48.883 ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败
 15:45:44.402 ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败
+15:38:17.047 ERROR org.gz.ImportOrigin$$anonfun$folderToDocuments$2 152 apply - com.mongodb.MongoBulkWriteException: Bulk write operation error on server 192.168.12.161:27017. Write errors: [BulkWriteError{index=7048, code=11000, message='E11000 duplicate key error collection: updatesdata.newdata index: _id_ dup key: { : "ad0165de-a933-458a-9da0-a77500af489f" }', details={ }}]. 

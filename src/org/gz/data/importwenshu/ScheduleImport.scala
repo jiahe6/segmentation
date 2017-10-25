@@ -43,6 +43,15 @@ object ScheduleImport extends Conf{
 	val (wenshuRarPath, wenshuPath) = 
 		if(System.getProperty("os.name").toLowerCase().startsWith("win")) (config.getString("importwenshu.winrarpath"), config.getString("importwenshu.winwenshupath")) 
 		else (config.getString("importwenshu.linuxrarpath"), config.getString("importwenshu.linuxwenshupath"))
+		
+	def testDirPath(str: String) = {
+		val f = new File(str)	
+		IOUtils.checkFileParent(f)
+		if (!f.exists()) f.mkdirs()
+	}
+	testDirPath(wenshuRarPath)
+	testDirPath(wenshuPath)
+	
 	
 	def DownloadRar(day: String) = {		
 		{new URL("http://wenshu.court.gov.cn/DownLoad/FileDownLoad.aspx?action=1&userName=dsjyjy&pwd=yjy201611&dates=" + day) #> new File(wenshuRarPath + day + ".rar") !}
@@ -149,20 +158,24 @@ object ScheduleImport extends Conf{
 		}
 		val r = new Runnable(){
 			override def run(): Unit = {
-				if (!c.after(c2)) so.cancel(false)
-				//calendar+1在doinsertbytime里
-				val f = new File(wenshuRarPath + sdf.format(cn.getTime) + ".rar")
-				if (!f.exists())
-  				doInsertByTime(cn)
-  			else
-  				log.warn("file exist!")
-  			//TODO： 进行数据处理
-  			//TODO： 处理完毕后插入到origin2和forsearch中    			
-  			//TODO： 要确保插入完了进行备份，所以单线程执行备份
-  			if (cw.equals(cn)) {
-  				ScheduleBackup.doBackUp(cw)
-  				cw.add(Calendar.WEEK_OF_MONTH, 1)
-  			}
+				try{
+					if (!c.after(c2)) so.cancel(false)
+					//calendar+1在doinsertbytime里
+					val f = new File(wenshuRarPath + sdf.format(cn.getTime) + ".rar")
+					if (!f.exists())
+	  				doInsertByTime(cn)
+	  			else
+	  				log.warn("file exist!")
+	  			//TODO： 进行数据处理
+	  			//TODO： 处理完毕后插入到origin2和forsearch中    			
+	  			//TODO： 要确保插入完了进行备份，所以单线程执行备份
+	  			if (cw.equals(cn)) {
+	  				ScheduleBackup.doBackUp(cw)
+	  				cw.add(Calendar.WEEK_OF_MONTH, 1)
+	  			}
+				}catch{
+					case e: Throwable => log.error(e)
+				}
 			}
   	}
 		Thread.sleep(5000)

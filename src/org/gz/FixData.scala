@@ -15,7 +15,7 @@ import java.util.ArrayList
 import com.mongodb.client.model.InsertManyOptions
 import org.apache.logging.log4j.LogManager
 import org.gz.data.importwenshu.ScheduleImport
-import org.gz.util.MongoAdminAuth
+import org.gz.util.MongoUserUtils
 
 /**
  * @author cloud
@@ -65,7 +65,7 @@ object FixData extends Conf{
 	 */
 	def fixDeletedData = {
 		println("start fix data")		
-		val mongoURI = new MongoClientURI(s"mongodb://${config.getString("mongo.cluster.user")}:${config.getString("mongo.cluster.passwd")}@192.168.12.161:27017/?authSource=admin")
+		val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
 		val mongo = new MongoClient(mongoURI)
 		val db = mongo.getDatabase("wenshu")
 		val dborigin2 = db.getCollection("origin2")

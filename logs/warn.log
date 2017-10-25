@@ -3725,3 +3725,20 @@
 13:06:41.458 ERROR org.gz.data.importwenshu.ScheduleBackup$ 58 doBackUp - drop3周前的表失败
 15:42:48.883 ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败
 15:45:44.402 ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败
+15:37:26.155 WARN  org.gz.ImportOrigin$ 135 folderToDocuments - new path start:D:\library\wenshu\test\test\20171023
+15:37:26.155 WARN  org.gz.ImportOrigin$ 136 folderToDocuments - GetAllFiles start: D:\library\wenshu\test\test\20171023
+15:37:28.004 WARN  org.gz.ImportOrigin$ 138 folderToDocuments - GetAllFiles done: D:\library\wenshu\test\test\20171023
+15:37:42.177 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+15:38:17.047 ERROR org.gz.ImportOrigin$$anonfun$folderToDocuments$2 152 apply - com.mongodb.MongoBulkWriteException: Bulk write operation error on server 192.168.12.161:27017. Write errors: [BulkWriteError{index=7048, code=11000, message='E11000 duplicate key error collection: updatesdata.newdata index: _id_ dup key: { : "ad0165de-a933-458a-9da0-a77500af489f" }', details={ }}]. 
+15:38:17.048 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+15:38:29.577 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+15:38:42.240 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+15:38:54.650 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+15:39:01.786 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+15:39:11.021 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+15:39:22.255 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+15:39:33.069 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+15:39:50.437 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+15:40:00.893 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 151 apply - start insert 10000:
+15:40:06.269 WARN  org.gz.ImportOrigin$$anonfun$folderToDocuments$2 160 apply - finish insert 10000:
+15:40:14.876 WARN  org.gz.ImportOrigin$ 172 folderToDocuments - All done: D:\library\wenshu\test\test\20171023
