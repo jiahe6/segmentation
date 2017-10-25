@@ -13,10 +13,11 @@ import org.apache.spark.sql.SparkSession
 import com.mongodb.spark.MongoSpark
 import com.mongodb.spark.config.ReadConfig
 import org.apache.spark.SparkConf
+import org.gz.util.MongoUserUtils
 
 object TestAuth {
 
-	val mongoURI = new MongoClientURI("mongodb://gaoze:qazwsxedc!@192.168.12.161:27017/?authSource=admin")
+	val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
 	//val mongoURI = new MongoClientURI("mongodb://192.168.12.148:27017/");
 	lazy val mongo = new MongoClient(mongoURI)
 	private lazy val db = mongo.getDatabase("wenshu")
@@ -30,7 +31,7 @@ object TestAuth {
 	
 	def testSpark = {
 		  	val spark = SparkSession.builder()
-//  		.config("spark.mongodb.input.uri", "mongodb://gaoze:Dx72000000!@192.168.12.148:27017/test.test?authSource=admin")
+//  		.config("spark.mongodb.input.uri", "mongodb://gaoze:123456@192.168.12.148:27017/test.test?authSource=admin")
   		.master("local").getOrCreate()
   	val readConfig = ReadConfig(Map(
   			"uri" -> "mongodb://rw:1@192.168.12.148:27017/?authSource=test",

@@ -3722,3 +3722,6 @@
 09:24:28.079 ERROR org.gz.data.importwenshu.ScheduleBackup$ 57 doBackUp - drop3周前的表失败
 14:21:24.156 ERROR org.gz.data.importwenshu.ScheduleBackup$ 58 doBackUp - drop3周前的表失败
 09:23:10.866 ERROR org.gz.data.importwenshu.ScheduleBackup$ 58 doBackUp - drop3周前的表失败
+13:06:41.458 ERROR org.gz.data.importwenshu.ScheduleBackup$ 58 doBackUp - drop3周前的表失败
+15:42:48.883 ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败
+15:45:44.402 ERROR org.gz.data.importwenshu.ScheduleBackup$ 59 doBackUp - drop3周前的表失败

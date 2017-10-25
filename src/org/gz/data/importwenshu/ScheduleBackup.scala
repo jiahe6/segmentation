@@ -21,12 +21,14 @@ import org.bson.Document
 import com.mongodb.InsertOptions
 import com.mongodb.client.model.InsertManyOptions
 import scala.collection.JavaConverters._
+import org.gz.util.MongoUserUtils
 
 object ScheduleBackup extends Conf{
 	// 	System.setProperty("hadoop.home.dir", "D:/hadoop-common")
 	val log = LogManager.getLogger(this.getClass.getName())
 	val (user, passwd, authDB) = (config.getString("mongo.cluster.user"), config.getString("mongo.cluster.passwd"), config.getString("mongo.cluster.authDB"))	
 	lazy val spark = SparkSession.builder()
+//			.master("local")
 		.master("spark://192.168.12.161:7077")
 		.config(new SparkConf().setJars(Array("hdfs://192.168.12.161:9000/mongolib/mongo-spark-connector_2.11-2.0.0.jar",
 				"hdfs://192.168.12.161:9000/mongolib/bson-3.4.2.jar",
@@ -55,8 +57,9 @@ object ScheduleBackup extends Conf{
   def doBackUp(c: Calendar) = {
 		val backName = s"backup${sdf.format(c.getTime)}"
 		c.add(Calendar.DAY_OF_MONTH, -21)
+		val muu = new MongoUserUtils
 		try{
-			val mongoURI2 = new MongoClientURI(s"mongodb://${config.getString("mongo.backup.user")}:${config.getString("mongo.backup.user")}@192.168.12.160:27017/?authSource=${config.getString("mongo.backup.user")}")
+			val mongoURI2 = new MongoClientURI(muu.backupMongoURI)
 			val mongo2 = new MongoClient(mongoURI2)
 			val db2 = mongo2.getDatabase("wenshu")
 			val dbColl3 = db2.getCollection(s"backup${sdf.format(c.getTime)}")
@@ -66,12 +69,10 @@ object ScheduleBackup extends Conf{
 			case e: Throwable => log.error("drop3周前的表失败") 
 		}
   	val rdd = MongoSpark.builder().sparkSession(spark).build().toRDD()
-//  	val df = MongoSpark.builder().sparkSession(spark).build.toDF
-//  	MongoSpark.save(df.write)
   	rdd.persist(StorageLevel.MEMORY_AND_DISK)
-   	println(rdd.count())  
-   	val uri = s"mongodb://${user}:${passwd}@192.168.12.161:27017/?authSource=${authDB}"
-   	val uri2 = s"mongodb://${config.getString("mongo.backup.user")}:${config.getString("mongo.backup.passwd")}@192.168.12.160:27017/?authSource=${config.getString("mongo.backup.authDB")}"
+   	println(rdd.count())   	
+   	val uri = muu.clusterMongoURI
+   	val uri2 = muu.backupMongoURI
   	rdd.foreachPartition { x => {  		
   		val mongoURI = new MongoClientURI(uri)
 			val mongo = new MongoClient(mongoURI)

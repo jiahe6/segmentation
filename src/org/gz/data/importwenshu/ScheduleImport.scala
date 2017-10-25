@@ -19,6 +19,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import org.apache.commons.compress.archivers.zip.ZipFile
 import sun.security.jca.GetInstance
+import org.gz.util.MongoUserUtils
 
 /**
  * 定期导入程序
@@ -26,7 +27,7 @@ import sun.security.jca.GetInstance
 object ScheduleImport extends Conf{
 	val log = LogManager.getLogger(this.getClass.getName())
 	val sdf = new SimpleDateFormat("yyyyMMdd")
-	lazy val mongoURI = new MongoClientURI("mongodb://gaoze:qazwsxedc!@192.168.12.161:27017/?authSource=admin")
+	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
 	lazy val mongo = new MongoClient(mongoURI)
 	private lazy val db = mongo.getDatabase("updatesdata")
 	private lazy val dbColl = db.getCollection("newdata")
