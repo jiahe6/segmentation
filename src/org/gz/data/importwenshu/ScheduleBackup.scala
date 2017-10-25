@@ -68,7 +68,7 @@ object ScheduleBackup extends Conf{
 		}catch{
 			case e: Throwable => log.error("drop3周前的表失败") 
 		}
-  	val rdd = MongoSpark.builder().sparkSession(spark).build().toRDD()
+  	val rdd = MongoSpark.builder().sparkSession(spark).pipeline(Seq(`match`(eqq("basiclabel.casecause", "盗窃罪")))).build().toRDD()
   	rdd.persist(StorageLevel.MEMORY_AND_DISK)
    	println(rdd.count())   	
    	val uri = muu.clusterMongoURI
