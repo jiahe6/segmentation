@@ -28,7 +28,7 @@ object TestOthers {
   def main(args: Array[String]): Unit = {
  	  val doc = testBasicLable
  	  println(123321123)
- 	  val seg = new DocHandlerMongoToMongo
+ 	  val seg = new DocHandlerMongoToMongo()
  	  println(222222222)
  	  val segdoc = seg.genSegData(doc)
  	  println(segdoc)	
