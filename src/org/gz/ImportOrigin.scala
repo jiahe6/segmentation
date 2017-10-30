@@ -22,6 +22,7 @@ import java.util.ArrayList
 import java.util.concurrent.Executors
 import com.mongodb.client.model.InsertManyOptions
 import com.mongodb.client.MongoCollection
+import org.gz.data.importwenshu.ImportDataProcess
 
 
 /**
@@ -128,54 +129,38 @@ object ImportOrigin {
 		}
 	}
 	
-	def folderToDocuments(x: File, db: MongoCollection[Document]) = {
+	def folderToDocuments(x: File, db: MongoCollection[Document], fixdb: MongoCollection[Document] = null) = {
 		assert(x.isDirectory, s"${x.getPath} is not a directory")
-//		var resList = new ArrayList[Document]
-	var count = 0
+		var count = 0
 		log.warn("new path start:" + x.getPath)		  		
 		log.warn("GetAllFiles start: " + x.getPath)
 		val files = getAllFiles(x)
 		log.warn("GetAllFiles done: " + x.getPath)
 		files.foreach(x => 
 			try{
-				//log.info("start wenshu chuli:" + x.getPath)
 				var d = new Document
 				val id = getwenshuID(x.getName)
 				if (id != "")	d.append("_id", id)
 				d.append("path", x.getPath)
 				d.append("content", filterHtml(Source.fromFile(x, detector(x)).getLines().toArray).mkString("\n"))
-//				resList.add(d)
 				count = count+1
 				try{
 					db.insertOne(d)
+					if (fixdb != null){
+						fixdb.insertOne(ImportDataProcess.processData(d))
+					}
 				}catch {
 					case e : Throwable => 
 				}
-				//log.info("end wenshu chuli:" + x.getPath)
 				if (count == 10000) {
 					log.warn("start insert 10000:")
-					try{
-						//如果这里不加try,catch会导致出一次错resList就不清空了，这样以后插入就全是duplicate key
-//						db.insertMany(resList, new InsertManyOptions().ordered(false))
-					}catch{
-						case e: Throwable => log.error(e)
-					}
 					count = 0
-//					resList.clear
 					log.warn("finish insert 10000:")
 				}
 			}catch {
 				case e: Throwable => log.error(e)
 			})
-		if (count > 0)
-			try{
-//				db.insertMany(resList, new InsertManyOptions().ordered(false))
-			} catch {
-				case e: Throwable => log.error(e)
-				e.printStackTrace
-			}
 		log.warn("All done: " + x.getPath)		
-//		resList
 	}
 	
   def main(args: Array[String]): Unit = {

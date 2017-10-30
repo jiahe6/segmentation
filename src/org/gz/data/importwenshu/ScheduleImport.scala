@@ -87,7 +87,7 @@ object ScheduleImport extends Conf{
 	  unzipRar(sdf.format(cal.getTime))
 	  log.info("unziped wenshu")
 	  //写到芒果里
-	  ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl)
+	  ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl, mongo.getDatabase("updatesdata").getCollection("processeddata"))
 	}
 	
 	/**
@@ -113,6 +113,33 @@ object ScheduleImport extends Conf{
 			}
 			cal.add(Calendar.DAY_OF_MONTH, 1)
 		}
+	}
+	
+	/**
+	 * 对没经过处理的updatesdata.newdata数据进行处理操作
+	 */
+	def fixUnProcessData = {				
+		val dbprocesseddata = mongo.getDatabase("updatesdata").getCollection("processeddata")
+		val iter = dbColl.find().noCursorTimeout(true)
+		iter.foreach(x => {
+			val res = ImportDataProcess.processData(x)
+			try{
+				dbprocesseddata.insertOne(res)
+			}catch {
+				case e: Throwable => log.error(e)
+			}
+		})
+		val dbfixdata = mongo.getDatabase("updatesdata").getCollection("fixdata")
+		val fixiter = dbfixdata.find().noCursorTimeout(true)
+		fixiter.foreach(x => {
+			val res = ImportDataProcess.processData(x)
+			try{
+				dbprocesseddata.insertOne(res)
+			}catch {
+				case e: Throwable => log.error(e)
+			}
+		})
+		mongo.close
 	}
 	
   def doInsertByTime(cal: Calendar) = {
@@ -168,9 +195,9 @@ object ScheduleImport extends Conf{
 	  				doInsertByTime(cn)
 	  			else
 	  				log.warn("file exist!")
-	  			//TODO： 进行数据处理
-	  			//TODO： 处理完毕后插入到origin2和forsearch中    			
-	  			//TODO： 要确保插入完了进行备份，所以单线程执行备份
+	  			//TODO  数据处理已加入，但是没测试，现在进行到插入processeddata，如果测试成功则进行下一步
+	  			//TODO  处理完毕后插入到origin2和forsearch中    			
+	  			//TODO  要确保插入完了进行备份，所以单线程执行备份
 	  			if (cw.equals(cn)) {
 	  				//ScheduleBackup.doBackUp(cw)
 	  				cw.add(Calendar.WEEK_OF_MONTH, 1)
