@@ -13,6 +13,8 @@ import org.apache.commons.compress.archivers.zip.ZipFile
 import org.bson.Document
 import tp.file.label.FindLabelByMongo
 import main.DocHandlerMongoToMongo
+import org.gz.data.segsecond.SegWithOrigin2
+import test.TestDataGen1
 
 object TestOthers {
   
@@ -25,13 +27,15 @@ object TestOthers {
 		new_doc
   }
   
+  def getii = {
+    val doc = testBasicLable
+ 	  val seg = new DocHandlerMongoToMongo
+    val segdoc = seg.genSegData(doc)
+ 	  println(segdoc)
+  }
+  
   def main(args: Array[String]): Unit = {
- 	  val doc = testBasicLable
- 	  println(123321123)
- 	  val seg = new DocHandlerMongoToMongo()
- 	  println(222222222)
- 	  val segdoc = seg.genSegData(doc)
- 	  println(segdoc)	
+ 	  	getii
   }
   
 }
