@@ -130,8 +130,8 @@ object ImportOrigin {
 	
 	def folderToDocuments(x: File, db: MongoCollection[Document]) = {
 		assert(x.isDirectory, s"${x.getPath} is not a directory")
-		var resList = new ArrayList[Document]
-  	var count = 0
+//		var resList = new ArrayList[Document]
+	var count = 0
 		log.warn("new path start:" + x.getPath)		  		
 		log.warn("GetAllFiles start: " + x.getPath)
 		val files = getAllFiles(x)
@@ -144,19 +144,24 @@ object ImportOrigin {
 				if (id != "")	d.append("_id", id)
 				d.append("path", x.getPath)
 				d.append("content", filterHtml(Source.fromFile(x, detector(x)).getLines().toArray).mkString("\n"))
-				resList.add(d)
+//				resList.add(d)
 				count = count+1
+				try{
+					db.insertOne(d)
+				}catch {
+					case e : Throwable => 
+				}
 				//log.info("end wenshu chuli:" + x.getPath)
 				if (count == 10000) {
 					log.warn("start insert 10000:")
 					try{
 						//如果这里不加try,catch会导致出一次错resList就不清空了，这样以后插入就全是duplicate key
-						db.insertMany(resList, new InsertManyOptions().ordered(false))
+//						db.insertMany(resList, new InsertManyOptions().ordered(false))
 					}catch{
 						case e: Throwable => log.error(e)
 					}
 					count = 0
-					resList.clear
+//					resList.clear
 					log.warn("finish insert 10000:")
 				}
 			}catch {
@@ -164,13 +169,13 @@ object ImportOrigin {
 			})
 		if (count > 0)
 			try{
-				db.insertMany(resList, new InsertManyOptions().ordered(false))
+//				db.insertMany(resList, new InsertManyOptions().ordered(false))
 			} catch {
 				case e: Throwable => log.error(e)
 				e.printStackTrace
 			}
 		log.warn("All done: " + x.getPath)		
-		resList
+//		resList
 	}
 	
   def main(args: Array[String]): Unit = {

@@ -97,7 +97,9 @@ object ScheduleImport extends Conf{
 	def fixErrorZip = {
 		//打不开的rar
 		val cal = Calendar.getInstance
-		cal.setTime(sdf.parse("20170101"))
+		cal.setTime(sdf.parse("20160101"))
+		val c2 = Calendar.getInstance
+		c2.setTime(sdf.parse("20161231"))
 		while (cal.before(c2)){
 			try{
 				val path = wenshuRarPath + s"${sdf.format(cal.getTime)}.rar"
@@ -170,7 +172,7 @@ object ScheduleImport extends Conf{
 	  			//TODO： 处理完毕后插入到origin2和forsearch中    			
 	  			//TODO： 要确保插入完了进行备份，所以单线程执行备份
 	  			if (cw.equals(cn)) {
-	  				ScheduleBackup.doBackUp(cw)
+	  				//ScheduleBackup.doBackUp(cw)
 	  				cw.add(Calendar.WEEK_OF_MONTH, 1)
 	  			}
 				}catch{
