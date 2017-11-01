@@ -20,6 +20,7 @@ import scala.collection.JavaConverters._
 import org.apache.commons.compress.archivers.zip.ZipFile
 import sun.security.jca.GetInstance
 import org.gz.util.MongoUserUtils
+import org.gz.ftp.UploadFile
 
 /**
  * 定期导入程序
@@ -86,6 +87,8 @@ object ScheduleImport extends Conf{
 	 	//解压zip包
 	  unzipRar(sdf.format(cal.getTime))
 	  log.info("unziped wenshu")
+	  //传到FTP
+	  UploadFile.uploadFile(cal.getTime)
 	  //写到芒果里
 	  ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl, mongo.getDatabase("updatesdata").getCollection("processeddata"))
 	}
@@ -97,9 +100,9 @@ object ScheduleImport extends Conf{
 	def fixErrorZip = {
 		//打不开的rar
 		val cal = Calendar.getInstance
-		cal.setTime(sdf.parse("20160101"))
+		cal.setTime(sdf.parse("20140101"))
 		val c2 = Calendar.getInstance
-		c2.setTime(sdf.parse("20161231"))
+		c2.setTime(sdf.parse("20151231"))
 		while (cal.before(c2)){
 			try{
 				val path = wenshuRarPath + s"${sdf.format(cal.getTime)}.rar"
@@ -121,9 +124,9 @@ object ScheduleImport extends Conf{
 	def fixUnProcessData = {				
 		val dbprocesseddata = mongo.getDatabase("updatesdata").getCollection("processeddata")
 		val iter = dbColl.find().noCursorTimeout(true)
-		iter.foreach(x => {
-			val res = ImportDataProcess.processData(x)
+		iter.foreach(x => {			
 			try{
+				val res = ImportDataProcess.processData(x)
 				dbprocesseddata.insertOne(res)
 			}catch {
 				case e: Throwable => log.error(e)
@@ -132,8 +135,8 @@ object ScheduleImport extends Conf{
 		val dbfixdata = mongo.getDatabase("updatesdata").getCollection("fixdata")
 		val fixiter = dbfixdata.find().noCursorTimeout(true)
 		fixiter.foreach(x => {
-			val res = ImportDataProcess.processData(x)
 			try{
+				val res = ImportDataProcess.processData(x)
 				dbprocesseddata.insertOne(res)
 			}catch {
 				case e: Throwable => log.error(e)

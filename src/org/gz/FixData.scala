@@ -114,6 +114,6 @@ object FixData extends Conf{
 	
   def main(args: Array[String]): Unit = {
   	//fixDeletedData
-  	ScheduleImport.fixUnProcessData  	
+  	ScheduleImport.fixErrorZip  	
   }
 }
