@@ -37,7 +37,7 @@ object ScheduleBackup extends Conf{
 				"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-core-3.4.2.jar",
 				"hdfs://192.168.12.161:9000/mongolib/commons-io-2.5.jar",
 				"hdfs://192.168.12.161:9000/mongolib/config-1.2.1.jar",
-				"hdfs://192.168.12.161:9000/ScheduleImport.jar")))  	  
+				"hdfs://192.168.12.161:9000/SchedulerImport.jar")))  	  
 		.config("spark.cores.max", 80)		
 		.config("spark.executor.cores", 16)
 		.config("spark.executor.memory", "32g")
@@ -77,7 +77,7 @@ object ScheduleBackup extends Conf{
   		val mongoURI = new MongoClientURI(uri)
 			val mongo = new MongoClient(mongoURI)
 			val db = mongo.getDatabase("wenshu")
-			val dbColl = db.getCollection("origin")
+			val dbColl = db.getCollection("originbackup")
 						
 			val mongoURI2 = new MongoClientURI(uri2)
 			val mongo2 = new MongoClient(mongoURI2)

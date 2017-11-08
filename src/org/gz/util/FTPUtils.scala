@@ -47,7 +47,11 @@ class FTPUtils(user: String, passwd: String, server: String) {
 		ftp.changeWorkingDirectory(path)
 		ftp.setFileType(FTP.BINARY_FILE_TYPE)
 		ftp.storeFile(fileName, new ByteArrayInputStream("ok".getBytes))		
-	}	
+	}
+	
+	def close = {
+		ftp.disconnect
+	}
 }
 
 object UploadArgs extends Enumeration{

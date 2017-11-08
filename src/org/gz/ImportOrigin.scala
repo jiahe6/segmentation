@@ -129,7 +129,7 @@ object ImportOrigin {
 		}
 	}
 	
-	def folderToDocuments(x: File, db: MongoCollection[Document], fixdb: MongoCollection[Document] = null) = {
+	def folderToDocuments(x: File, db: MongoCollection[Document], processedDBs: MongoCollection[Document]*) = {
 		assert(x.isDirectory, s"${x.getPath} is not a directory")
 		var count = 0
 		log.warn("new path start:" + x.getPath)		  		
@@ -145,17 +145,14 @@ object ImportOrigin {
 				d.append("content", filterHtml(Source.fromFile(x, detector(x)).getLines().toArray).mkString("\n"))
 				count = count+1
 				try{
-					db.insertOne(d)
-					if (fixdb != null){
-						fixdb.insertOne(ImportDataProcess.processData(d))
-					}
+					db.insertOne(d)					
+					val processedDoc = ImportDataProcess.processData(d)
+					processedDBs.foreach(_.insertOne(processedDoc))
 				}catch {
 					case e : Throwable => 
 				}
-				if (count == 10000) {
-					log.warn("start insert 10000:")
-					count = 0
-					log.warn("finish insert 10000:")
+				if ((count % 10000) == 0) {
+					log.warn(s"insert $count")					
 				}
 			}catch {
 				case e: Throwable => log.error(e)

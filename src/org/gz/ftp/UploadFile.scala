@@ -12,8 +12,7 @@ import org.gz.util.UploadArgs
 
 object UploadFile extends Conf{
   
-	val log = LogManager.getLogger(this.getClass.getName())
-	val ftp = new FTPUtils
+	val log = LogManager.getLogger(this.getClass.getName())	
 	val sdf = new SimpleDateFormat("yyyyMMdd")
 	val rarPath = if (System.getProperty("os.name").toLowerCase().startsWith("win")) config.getString("importwenshu.winrarpath") else config.getString("importwenshu.linuxrarpath")
 	val mode = config.getString("ftp.uploadmode") match {
@@ -24,7 +23,8 @@ object UploadFile extends Conf{
 	/**
 	 * 上传文件 没做异常检测
 	 */
-  def uploadFile(startTime: Date, endTime: Date): Boolean = {
+  def uploadFile(startTime: Date, endTime: Date, newfile: Boolean = true): Boolean = {
+  	val ftp = new FTPUtils
 		val startc = Calendar.getInstance
   	startc.setTime(sdf.parse(sdf.format(startTime)))  	
   	val endc = Calendar.getInstance
@@ -32,10 +32,11 @@ object UploadFile extends Conf{
   	var res = false
   	while (!startc.after(endc)){
   		val timestr = sdf.format(startc.getTime)
-  		try{
-  			ftp.mkdir(timestr)
-  			res = ftp.uploadFile(timestr, new File(s"${rarPath}/${timestr}.rar"), mode)
-  			if (res) ftp.uploadOkFile(timestr, s"$timestr.rar.ok")
+  		val ftppath = if (newfile) timestr else "history/" + timestr
+  		try{  			
+  			ftp.mkdir(ftppath)
+  			res = ftp.uploadFile(ftppath, new File(s"${rarPath}/${timestr}.rar"), mode)
+  			if (res) ftp.uploadOkFile(ftppath, s"$timestr.rar.ok")
   		} catch {
   			case e: Throwable =>
   				log.error(s"upload to ftp fail: ${timestr}.rar")
@@ -44,6 +45,7 @@ object UploadFile extends Conf{
   		println(s"upload ${timestr}.rar")
   		startc.add(Calendar.DAY_OF_MONTH, 1)
   	}
+  	ftp.close
 		res
   }
 

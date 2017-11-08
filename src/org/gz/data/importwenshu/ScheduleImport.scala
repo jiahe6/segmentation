@@ -71,7 +71,7 @@ object ScheduleImport extends Conf{
 	def insertOld() = {
     val runa = new Runnable(){
       override def run(): Unit = {
-				if (c.after(c2))
+				if ((c.after(c2))&&(!new File(wenshuRarPath + sdf.format(c2.getTime) + ".rar").exists()))					
      			doInsertByTime(c2)
       }
     }		
@@ -90,7 +90,13 @@ object ScheduleImport extends Conf{
 	  //传到FTP
 	  UploadFile.uploadFile(cal.getTime)
 	  //写到芒果里
-	  ImportOrigin.folderToDocuments(new File(wenshuPath + sdf.format(cal.getTime) + "/"), dbColl, mongo.getDatabase("updatesdata").getCollection("processeddata"))
+	  ImportOrigin.folderToDocuments(
+	  		new File(wenshuPath + sdf.format(cal.getTime) + "/"), 
+	  		dbColl, 
+	  		mongo.getDatabase("updatesdata").getCollection("processeddata"),
+	  		mongo.getDatabase("wenshu").getCollection("origin2"),
+	  		mongo.getDatabase("forsearch").getCollection("updatesdata")	  		
+	  		)
 	}
 	
 	/**
@@ -199,10 +205,14 @@ object ScheduleImport extends Conf{
 	  			else
 	  				log.warn("file exist!")
 	  			//TODO  数据处理已加入，但是没测试，现在进行到插入processeddata，如果测试成功则进行下一步
-	  			//TODO  处理完毕后插入到origin2和forsearch中    			
-	  			//TODO  要确保插入完了进行备份，所以单线程执行备份
+	  			//TODO  处理完毕后插入到origin2和forsearch中 ,完成			
+	  			//TODO  要确保插入完了进行备份，所以单线程执行备份,完成
 	  			if (cw.equals(cn)) {
-	  				//ScheduleBackup.doBackUp(cw)
+	  				try{
+	  					ScheduleBackup.doBackUp(cw)
+	  				}catch{
+	  					case e: Throwable => log.error(e)
+	  				}	  				
 	  				cw.add(Calendar.WEEK_OF_MONTH, 1)
 	  			}
 				}catch{
