@@ -23,6 +23,8 @@ import java.util.concurrent.Executors
 import com.mongodb.client.model.InsertManyOptions
 import com.mongodb.client.MongoCollection
 import org.gz.data.importwenshu.ImportDataProcess
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 /**
@@ -34,10 +36,7 @@ object ImportOrigin {
 	val rootPath = "/home/cloud/wenshu/20161231"
 	val ls = "D:/library/wenshu/20131231/最高人民法院/0/民事案件/（2013）民二终字第64号_f05d5807-b647-11e3-84e9-5cf3fc0c2c18裁定书.txt"
 	val log = LogManager.getLogger(this.getClass.getName())
-	lazy val mongo = new MongoClient("192.168.12.161", 27017)
-	lazy val db = mongo.getDatabase("updatesdata")
-	lazy val dbColl = db.getCollection("newdata")
-
+	
 	//探测器
 	val det = CodepageDetectorProxy.getInstance()
 	det.add(new ParsingDetector(false))
@@ -136,6 +135,7 @@ object ImportOrigin {
 		log.warn("GetAllFiles start: " + x.getPath)
 		val files = getAllFiles(x)
 		log.warn("GetAllFiles done: " + x.getPath)
+//		val timesdf = new SimpleDateFormat("yyyyMMdd  HH:mm:ss:SSS")
 		files.foreach(x => 
 			try{
 				var d = new Document
@@ -145,11 +145,15 @@ object ImportOrigin {
 				d.append("content", filterHtml(Source.fromFile(x, detector(x)).getLines().toArray).mkString("\n"))
 				count = count+1
 				try{
-					db.insertOne(d)					
+//					println(timesdf.format(new Date(System.currentTimeMillis())) + ": start insert one")
+					db.insertOne(d)
+//					println(timesdf.format(new Date(System.currentTimeMillis())) + ": end insert one")
 					val processedDoc = ImportDataProcess.processData(d)
+//					println(timesdf.format(new Date(System.currentTimeMillis())) + ": end process")
 					processedDBs.foreach(_.insertOne(processedDoc))
+//					println(timesdf.format(new Date(System.currentTimeMillis())) + ": end insert3")
 				}catch {
-					case e : Throwable => 
+					case e : Throwable => e.printStackTrace()
 				}
 				if ((count % 10000) == 0) {
 					log.warn(s"insert $count")					
@@ -163,10 +167,13 @@ object ImportOrigin {
   def main(args: Array[String]): Unit = {
   	val rootFolder = new File(rootPath)
   	val scheduler = Executors.newFixedThreadPool(8)
+  	lazy val mongo = new MongoClient("192.168.12.161", 27017)
+		lazy val db = mongo.getDatabase("updatesdata")
+		lazy val dbColl = db.getCollection("newdata")
   	rootFolder.listFiles.foreach(y => {
   		val r = new Runnable(){
   			override def run(): Unit = {
-  			y.listFiles().foreach(x => folderToDocuments(x, dbColl))
+  				y.listFiles().foreach(x => folderToDocuments(x, dbColl))
   			}
   		}
   		scheduler.execute(r)

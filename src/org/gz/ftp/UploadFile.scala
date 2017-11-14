@@ -64,6 +64,11 @@ object UploadFile extends Conf{
 	}
 	 
 	def main(args: Array[String]): Unit = {
-	  uploadFile("20170119")
+	  args.length match {
+	  	case 3 => uploadFile(sdf.parse(args(0)), sdf.parse(args(1)), args(2).toBoolean)
+	  	case 2 => uploadFile(sdf.parse(args(0)), sdf.parse(args(1)))
+	  	case 1 => uploadFile(sdf.parse(args(0)))
+	  	case _ => uploadFile(sdf.parse("20171028"), sdf.parse("20171106"))
+	  }
 	}
 }

@@ -21,6 +21,8 @@ import org.apache.commons.compress.archivers.zip.ZipFile
 import sun.security.jca.GetInstance
 import org.gz.util.MongoUserUtils
 import org.gz.ftp.UploadFile
+import scala.collection.mutable.HashSet
+import scala.util.Try
 
 /**
  * 定期导入程序
@@ -33,6 +35,7 @@ object ScheduleImport extends Conf{
 	private lazy val db = mongo.getDatabase("updatesdata")
 	private lazy val dbColl = db.getCollection("newdata")
 	val scheduler = Executors.newScheduledThreadPool(5)
+	lazy val badArchive = HashSet[String]() 
 	
 	//计时器，插入旧数据时使用
 	val c = Calendar.getInstance
@@ -71,8 +74,11 @@ object ScheduleImport extends Conf{
 	def insertOld() = {
     val runa = new Runnable(){
       override def run(): Unit = {
-				if ((c.after(c2))&&(!new File(wenshuRarPath + sdf.format(c2.getTime) + ".rar").exists()))					
-     			doInsertByTime(c2)
+				if (c.after(c2)){
+					if (!new File(wenshuRarPath + sdf.format(c2.getTime) + ".rar").exists())
+     				doInsertByTime(c2)
+     			else c2.add(Calendar.DAY_OF_MONTH, 1)
+				}
       }
     }		
     val sf = scheduler.scheduleAtFixedRate(runa, 0, 180, TimeUnit.SECONDS)
@@ -170,15 +176,33 @@ object ScheduleImport extends Conf{
 	  			//最高法数据有问题，先睡个1分钟，再重试，重试次数多了就算了
 	  			if (attempt < 4) Thread.sleep(60000) else {
 	  				flag = true
+	  				badArchive += sdf.format(cal.getTime)
 	  				log.error(s"Error after 4 attempts at ${sdf.format(cal.getTime)}, check the wenshu.court.gov.cn source to know if the origin zip pack is null")
 	  			}		  			
 	  		case e: Throwable =>
+	  			flag = true
 	  			log.error(s"error while processing ${wenshuRarPath}${sdf.format(cal.getTime)}.rar")
 	  			log.error(e)
 	  			e.printStackTrace
+	  			Try{UploadFile.uploadFile(cal.getTime)} 	  				  			
 	  	} 
   	}
+  	val tc = Calendar.getInstance
+  	val tBadArchive = HashSet[String]()
+  	badArchive.foreach { x =>
+  		try{
+  			log.info(s"retry to redo the bad archive: $x")
+  			tc.setTime(sdf.parse(x))
+  			doInsert(tc)
+  			tBadArchive += x
+  		}catch {
+  			case e: Throwable =>
+  				log.error(s"Failed when retry to resolve the bad archive: $x")
+  		}
+  	}
+  	badArchive --= tBadArchive
   	//+1s
+  	log.warn(s"${badArchive.size} more archives are still broken: ${badArchive.mkString(", ")}")
 		cal.add(Calendar.DAY_OF_MONTH, 1)
   }
    	
@@ -203,7 +227,7 @@ object ScheduleImport extends Conf{
 					if (!f.exists())
 	  				doInsertByTime(cn)
 	  			else
-	  				log.warn("file exist!")
+	  				log.warn(s"file exist: ${f.getPath}")
 	  			//TODO  数据处理已加入，但是没测试，现在进行到插入processeddata，如果测试成功则进行下一步
 	  			//TODO  处理完毕后插入到origin2和forsearch中 ,完成			
 	  			//TODO  要确保插入完了进行备份，所以单线程执行备份,完成

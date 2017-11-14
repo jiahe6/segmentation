@@ -15,6 +15,10 @@ import tp.file.label.FindLabelByMongo
 import main.DocHandlerMongoToMongo
 import org.gz.data.segsecond.SegWithOrigin2
 import test.TestDataGen1
+import scala.collection.mutable.HashSet
+import com.mongodb.MongoClientURI
+import com.mongodb.MongoClient
+import org.gz.util.MongoUserUtils
 
 object TestOthers {
   
@@ -47,8 +51,17 @@ object TestOthers {
     println(doc)
   }
   
+  def testbinary = {
+  	val x = new File("D:/testwenshu")
+  	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+		lazy val mongo = new MongoClient(mongoURI)
+		lazy val db = mongo.getDatabase("updatesdata")
+		lazy val dbColl = db.getCollection("newdata")
+  	ImportOrigin.folderToDocuments(x, dbColl)
+  }
+  
   def main(args: Array[String]): Unit = {
- 	  	getii
+ 	  	testbinary
   }
   
 }

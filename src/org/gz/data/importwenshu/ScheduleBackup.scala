@@ -8,6 +8,7 @@ import com.mongodb.MongoClientURI
 import com.mongodb.MongoClient
 import com.mongodb.client.model.Filters.regex
 import com.mongodb.client.model.Filters.{eq => eqq}
+import com.mongodb.client.model.Filters.or
 import com.mongodb.client.model.Updates._
 import com.mongodb.client.model.Aggregates._
 import java.text.SimpleDateFormat
@@ -22,6 +23,7 @@ import com.mongodb.InsertOptions
 import com.mongodb.client.model.InsertManyOptions
 import scala.collection.JavaConverters._
 import org.gz.util.MongoUserUtils
+import scala.collection.mutable.ArrayBuffer
 
 object ScheduleBackup extends Conf{
 	// 	System.setProperty("hadoop.home.dir", "D:/hadoop-common")
@@ -37,7 +39,7 @@ object ScheduleBackup extends Conf{
 				"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-core-3.4.2.jar",
 				"hdfs://192.168.12.161:9000/mongolib/commons-io-2.5.jar",
 				"hdfs://192.168.12.161:9000/mongolib/config-1.2.1.jar",
-				"hdfs://192.168.12.161:9000/SchedulerImport.jar")))  	  
+				"hdfs://192.168.12.161:9000/DataMigration.jar")))  	  
 		.config("spark.cores.max", 80)		
 		.config("spark.executor.cores", 16)
 		.config("spark.executor.memory", "32g")
@@ -118,10 +120,58 @@ object ScheduleBackup extends Conf{
   	} }
   }
 	
+	def extractCasecausesToNewTable(name: String, caseCauses: Array[String]) = {
+		assert((name != ""), "name cant be ''")
+		assert((caseCauses.length > 0), "caseCauses cant be null")
+		val muu = new MongoUserUtils
+		val caseBson = caseCauses.map{x => eqq("basiclabel.casecause", x)}
+		val rdd = MongoSpark.builder().sparkSession(spark).pipeline(Seq(`match`(or(caseBson: _*)))).build().toRDD()
+  	rdd.persist(StorageLevel.MEMORY_AND_DISK)
+   	println(rdd.count())   	
+   	val uri = muu.clusterMongoURI
+  	rdd.foreachPartition { x => {  		
+  		val mongoURI = new MongoClientURI(uri)
+			val mongo = new MongoClient(mongoURI)
+			val db = mongo.getDatabase("datamining")
+			val dbColl = db.getCollection(name)
+			x.foreach(y => {
+				try{
+					dbColl.insertOne(y)
+				}catch{
+					case e: Throwable => e.printStackTrace()
+				}
+			})
+  		mongo.close
+  	} }
+	}
+	
+	def mergeTableToOrigin(name: String) = {
+		
+	}
+	
 	def main(args: Array[String]): Unit = {
-		val c = Calendar.getInstance
-		c.setTime(sdf.parse("20171024"))
-	 	doBackUp(c)
-	 	//150217
+		args.length match {
+			case 0 => 
+				println("Usage: Array[String], this is a program use to extract data from wenshu.orgin2 to datamining.collName or merge from datamining.collName to wenshu.origin2")
+				println("args 0: the method, extract or merge")
+				println("args 1: name, the collection name which want to 'extract to' or 'merge from'")
+				println("args 2-n: if you want to extract, please input the casecauses")
+			case 1 => 
+				println("error, we need ad least 2 arguments!")
+				println("Usage: Array[String], this is a program use to extract data from wenshu.orgin2 to datamining.collName or merge from datamining.collName to wenshu.origin2")
+				println("args 0: the method, extract or merge")
+				println("args 1: name, the collection name which want to 'extract to' or 'merge from'")
+				println("args 2-n: if you want to extract, please input the casecauses")
+			case _ =>
+				if (args(0).toLowerCase() == "extract"){
+					var casecauses = new Array[String](args.length - 2)
+					Array.copy(args, 2, casecauses, 0, args.length - 2)
+					println("casecauses: " + casecauses.mkString(", "))
+					extractCasecausesToNewTable(args(1), casecauses)
+				} 
+				else if (args(0).toLowerCase() == "merge"){
+					mergeTableToOrigin(args(1))
+				}
+		}
 	}
 }

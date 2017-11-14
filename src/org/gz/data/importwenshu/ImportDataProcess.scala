@@ -3,11 +3,13 @@ package org.gz.data.importwenshu
 import org.bson.Document
 import main.DocHandlerMongoToMongo
 import tp.file.label.FindLabelByMongo
+import java.text.SimpleDateFormat
+import java.util.Date
 
 object ImportDataProcess {
 	
 	def processBasicData(d: Document): Document = {
-		FindLabelByMongo findBasicLabel d
+		FindLabelByMongo findBasicLabel d		
 	}
 	
 	def processSegData(d: Document) = {
@@ -30,6 +32,14 @@ object ImportDataProcess {
 	}
 	
 	def processData(d: Document) = {
-		processSegData(processBasicData(d))		
+//		val timesdf = new SimpleDateFormat("yyyyMMdd  HH:mm:ss:SSS")
+//		println(timesdf.format(new Date(System.currentTimeMillis())) + ": start findLabel")
+		val doc = processBasicData(d)
+//		println(timesdf.format(new Date(System.currentTimeMillis())) + ": end findLabel")
+		processSegData(doc)
+	}
+	
+	def main(args: Array[String]): Unit = {
+	  
 	}
 }
