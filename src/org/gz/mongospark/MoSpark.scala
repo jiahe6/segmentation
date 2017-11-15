@@ -14,6 +14,8 @@ import com.mongodb.client.model.Updates._
 import com.mongodb.client.model.Aggregates._
 import com.mongodb.MongoClientOptions
 import org.gz.getershen
+import org.gz.util.MongoUserUtils
+import com.mongodb.MongoClientURI
 
 /**
  * @author cloud
@@ -21,7 +23,8 @@ import org.gz.getershen
  *  一审再审数据导入，后续用不到此类了
  */
 object MoSpark { 
-	lazy val mongo = new MongoClient("192.168.12.161", 27017)
+	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+	lazy val mongo = new MongoClient(mongoURI)
 	lazy val db = mongo.getDatabase("wenshu")
 	lazy val dbColl = db.getCollection("origin2")
 	
@@ -60,22 +63,7 @@ object MoSpark {
 	
   def main(args: Array[String]): Unit = {
   	//System.setProperty("hadoop.home.dir", "D:/hadoop-common")
-    val spark = SparkSession.builder()
-    	.master("spark://192.168.12.161:7077")
-    	.config(new SparkConf().setJars(Array("hdfs://192.168.12.161:9000/mongolib/mongo-spark-connector_2.11-2.0.0.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/bson-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/mongo-java-driver-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-core-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/commons-io-2.5.jar",
-    			"hdfs://192.168.12.161:9000/segwithorigin2.jar")))
-    	.config("spark.cores.max", 60)		
-    	.config("spark.executor.cores", 12)
-    	.config("spark.executor.memory", "32g")
-    	.config("spark.mongodb.input.uri", "mongodb://192.168.12.161:27017/wenshu.segdata3_jh")
- //   	.config("spark.mongodb.output.uri", "mongodb://192.168.12.161:27017/wenshu.origin2")
- //   	.config("spark.mongodb.input.partitioner", "MongoShardedPartitioner")
-    	.getOrCreate()
+    val spark = new MongoUserUtils().sparkSessionBuilder(inputuri = "mongodb://192.168.12.161:27017/wenshu.segdata3_jh")
     
    	val rdd = MongoSpark.builder().sparkSession(spark).build.toRDD()
    	rdd.foreach{ x => {

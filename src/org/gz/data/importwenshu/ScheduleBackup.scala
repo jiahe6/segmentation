@@ -29,27 +29,10 @@ object ScheduleBackup extends Conf{
 	// 	System.setProperty("hadoop.home.dir", "D:/hadoop-common")
 	val log = LogManager.getLogger(this.getClass.getName())
 	val (user, passwd, authDB) = (config.getString("mongo.cluster.user"), config.getString("mongo.cluster.passwd"), config.getString("mongo.cluster.authDB"))	
-	lazy val spark = SparkSession.builder()
-//			.master("local")
-		.master("spark://192.168.12.161:7077")
-		.config(new SparkConf().setJars(Array("hdfs://192.168.12.161:9000/mongolib/mongo-spark-connector_2.11-2.0.0.jar",
-				"hdfs://192.168.12.161:9000/mongolib/bson-3.4.2.jar",
-				"hdfs://192.168.12.161:9000/mongolib/mongo-java-driver-3.4.2.jar",
-				"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-3.4.2.jar",
-				"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-core-3.4.2.jar",
-				"hdfs://192.168.12.161:9000/mongolib/commons-io-2.5.jar",
-				"hdfs://192.168.12.161:9000/mongolib/config-1.2.1.jar",
-				"hdfs://192.168.12.161:9000/DataMigration.jar")))  	  
-		.config("spark.cores.max", 80)		
-		.config("spark.executor.cores", 16)
-		.config("spark.executor.memory", "32g")
-		.config("spark.mongodb.input.uri", s"mongodb://${user}:${passwd}@192.168.12.161:27017/wenshu.origin2?authSource=${authDB}")
-		.config("spark.mongodb.output.uri", s"mongodb://${user}:${passwd}@192.168.12.160:27017/wenshu.backup?authSource=${authDB}")
-		.config("spark.mongodb.input.partitionerOptions.samplesPerPartition", 1)
-		.getOrCreate()
+	lazy val spark = new MongoUserUtils().sparkSessionBuilder() 
 	
 	//带认证的方式调用MongoDB会出现不能初始化的错误，我觉得是因为mongoURI不能序列化的原因。
-//	val mongoURI = new MongoClientURI(s"mongodb://@192.168.12.161:27017/?authSource=admin")
+//	val mongoURI = new MongoClientURI(s"")
 //	val mongo = new MongoClient(mongoURI)
 //	val db = mongo.getDatabase("wenshu")
 //	val dbColl = db.getCollection("origin")

@@ -25,6 +25,8 @@ import com.mongodb.client.MongoCollection
 import org.gz.data.importwenshu.ImportDataProcess
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.mongodb.MongoClientURI
+import org.gz.util.MongoUserUtils
 
 
 /**
@@ -167,7 +169,8 @@ object ImportOrigin {
   def main(args: Array[String]): Unit = {
   	val rootFolder = new File(rootPath)
   	val scheduler = Executors.newFixedThreadPool(8)
-  	lazy val mongo = new MongoClient("192.168.12.161", 27017)
+  	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+		lazy val mongo = new MongoClient(mongoURI)
 		lazy val db = mongo.getDatabase("updatesdata")
 		lazy val dbColl = db.getCollection("newdata")
   	rootFolder.listFiles.foreach(y => {

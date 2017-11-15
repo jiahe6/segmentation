@@ -22,6 +22,8 @@ import org.apache.spark.SparkConf
 import scala.util.matching.Regex
 import scala.collection.JavaConverters._
 import org.gz.util.Conf
+import org.gz.util.MongoUserUtils
+import com.mongodb.MongoClientURI
 
 /**
  * 二审分段数据的spark版本，
@@ -190,31 +192,15 @@ object SegWithOrigin2 extends Conf{
 		d
 	}
 	
-	lazy val mongo = new MongoClient("192.168.12.161", 27017)//, MongoClientOptions.builder().connectionsPerHost(8).build())
-	lazy val db = mongo.getDatabase("wenshu")
-	lazy val dbColl = db.getCollection("origin2")
+	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+	lazy val mongo = new MongoClient(mongoURI)
+	private lazy val db = mongo.getDatabase("wenshu")
+	private lazy val dbColl = db.getCollection("origin2")
 	
 	def main(args: Array[String]): Unit = {
  // 	System.setProperty("hadoop.home.dir", "D:/hadoop-common")
-    val spark = SparkSession.builder()
-    	.master("spark://192.168.12.161:7077")
-    	.config(new SparkConf().setJars(Array("hdfs://192.168.12.161:9000/mongolib/mongo-spark-connector_2.11-2.0.0.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/bson-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/mongo-java-driver-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/mongodb-driver-core-3.4.2.jar",
-    			"hdfs://192.168.12.161:9000/mongolib/commons-io-2.5.jar",
-    			"hdfs://192.168.12.161:9000/segwithorigin2.jar")))
-    	.config("spark.cores.max", 80)		
-    	.config("spark.executor.cores", 16)
-    	.config("spark.executor.memory", "32g")
-    	.config("spark.mongodb.input.uri", "mongodb://192.168.12.161:27017/wenshu.ershen")
- //   	.config("spark.mongodb.output.uri", "mongodb://192.168.12.161:27017/wenshu.origin2")
-    	.getOrCreate()
-    
-//   	val readConf = ReadConfig("wenshu", "origin2", connectionString = Some("mongodb://192.168.12.161:27017"))
-   	val rdd = MongoSpark.builder().sparkSession(spark).build.toRDD()
-//    .pipeline(Seq(`match`(eqq("basiclabel.procedure", "二审"))))   	
+    val spark = new MongoUserUtils().sparkSessionBuilder()
+   	val rdd = MongoSpark.builder().sparkSession(spark).pipeline(Seq(`match`(eqq("basiclabel.procedure", "二审")))).build.toRDD()   	
    	rdd.cache()
    	println(rdd.count())
    	val c = 11.toChar

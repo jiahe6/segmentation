@@ -10,13 +10,16 @@ import java.io.PrintWriter
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import org.gz.mongospark.SegWithOrigin2
+import com.mongodb.MongoClientURI
+import org.gz.util.MongoUserUtils
 
 /**
  * 抽样数据，进行分段结果评测
  */
 object VerifyRes {
 	
-	private lazy val mongo = new MongoClient("192.168.12.161", 27017)
+	private lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+	private lazy val mongo = new MongoClient(mongoURI)
 	private lazy val db = mongo getDatabase "wenshu"
 	private lazy val dbColl = db getCollection "sample_gz"
 	private lazy val dbColl2 = db getCollection "origin2"

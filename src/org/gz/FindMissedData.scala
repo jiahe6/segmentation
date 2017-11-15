@@ -3,14 +3,17 @@ package org.gz
 import com.mongodb.MongoClient
 import scala.collection.JavaConversions.asScalaIterator
 import com.mongodb.client.model.Filters.{eq => eqq}
+import com.mongodb.MongoClientURI
+import org.gz.util.MongoUserUtils
 
 /**
  * 用袁媛的数据库查看原始库中被删了哪些数据
  */
 object FindMissedData {
 	
-	val cli = new MongoClient("192.168.12.161", 27017)
-	val db = cli.getDatabase("wenshu")
+	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+	lazy val mongo = new MongoClient(mongoURI)
+	val db = mongo.getDatabase("wenshu")
 	val dbColl = db.getCollection("origin2")
 	val dbCollyy = db.getCollection("daoqie_yy")
 	

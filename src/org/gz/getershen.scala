@@ -25,6 +25,7 @@ import com.mongodb.client.model.Filters.{eq => eqq}
 import com.mongodb.client.model.Updates._
 import com.mongodb.client.model.Aggregates._
 import com.mongodb.MongoClientURI
+import org.gz.util.MongoUserUtils
 
 
 /**
@@ -37,7 +38,8 @@ object getershen {
 	private val rootPath = "D:/library/wenshu/20150730"
 	private val ls = "D:/library/wenshu/20131231/最高人民法院/0/民事案件/（2013）民二终字第64号_f05d5807-b647-11e3-84e9-5cf3fc0c2c18裁定书.txt"
 	private val log = LogManager.getLogger(this.getClass.getName())
-	private lazy val mongo = new MongoClient("192.168.12.161", 27017)
+	private lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+	private lazy val mongo = new MongoClient(mongoURI)
 	private lazy val db = mongo.getDatabase("wenshu")
 	private lazy val dbColl = db.getCollection("origin2")
 
