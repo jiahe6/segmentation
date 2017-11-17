@@ -23,6 +23,7 @@ import org.gz.util.MongoUserUtils
 import org.gz.ftp.UploadFile
 import scala.collection.mutable.HashSet
 import scala.util.Try
+import org.gz.util.ConfigUtil
 
 /**
  * 定期导入程序
@@ -94,7 +95,8 @@ object ScheduleImport extends Conf{
 	  unzipRar(sdf.format(cal.getTime))
 	  log.info("unziped wenshu")
 	  //传到FTP
-	  UploadFile.uploadFile(cal.getTime)
+	  if (ConfigUtil.fptURI != "")
+	  	UploadFile.uploadFile(cal.getTime)
 	  //写到芒果里
 	  ImportOrigin.folderToDocuments(
 	  		new File(wenshuPath + sdf.format(cal.getTime) + "/"), 

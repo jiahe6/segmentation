@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigFactory
 
 trait Conf {
   val config =  ConfigFactory.load("application.conf")
-  def sparkURI = "spark://" + config.getString("spark.uri") + "/"
+  def sparkURI = "spark://" + config.getString("spark.uri")
   def hdfsURI = "hdfs://" + config.getString("hdfs.uri") + "/"
 }
 

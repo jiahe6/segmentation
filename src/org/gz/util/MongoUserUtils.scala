@@ -28,7 +28,7 @@ class MongoUserUtils extends Conf{
   
   def backupDefaultURI = s"mongodb://${backupUser}:${backupPW}@${backupURI}/wenshu.backup?authSource=${backupAuthDB}"
   
-  def sparkSessionBuilder(inputuri: String = "", outputuri: String = "") = {
+  def sparkSessionBuilder(inputuri: String = "", outputuri: String = "", jarName: String = "DataMigration.jar", extJars: Array[String] = Array()) = {
   	val inp = if (inputuri == "") origin2URI else inputuri
   	val oup = if (outputuri == "") backupDefaultURI else outputuri
   	SparkSession.builder()
@@ -41,7 +41,7 @@ class MongoUserUtils extends Conf{
 					s"${hdfsURI}/mongolib/mongodb-driver-core-3.4.2.jar",
 					s"${hdfsURI}/mongolib/commons-io-2.5.jar",
 					s"${hdfsURI}/mongolib/config-1.2.1.jar",
-					s"${hdfsURI}/DataMigration.jar")))  	  
+					s"${hdfsURI}/${jarName}") ++ extJars))  	  
 			.config("spark.cores.max", 80)		
 			.config("spark.executor.cores", 16)
 			.config("spark.executor.memory", "32g")
