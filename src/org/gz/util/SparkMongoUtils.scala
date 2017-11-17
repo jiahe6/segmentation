@@ -11,6 +11,8 @@ import com.mongodb.client.model.Aggregates._
 import com.mongodb.client.model.UpdateOptions
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
+import scala.collection.mutable.HashMap
+import scala.util.Try
 
 class SparkMongoUtils(filters: Seq[Bson] = null, inputuri: SparkMongoIOStruct = null, jarName: String, extJars: Array[String] = Array(), outputuri: MongoIOStruct) {
 }
@@ -85,13 +87,22 @@ object SparkMongoUtils{
 	}
 	
 	def main(args: Array[String]): Unit = {
-	  val smu = SparkMongoUtilsStruct(filters = Seq(`match`(eqq("basiclabel.casecause", "抢劫罪"))), inputuri = SparkMongoIOStruct(generateClusterURI("datamining", "xing4shi").generateMongoSparkURI), jarName = "testSparkUtil.jar", outputuri = generateClusterURI("datamining", "testsparkIO"))	  
-	  replace(smu, x => x)
+	  val smu = SparkMongoUtilsStruct(filters = Seq(`match`(eqq("basiclabel.procedure", "二审"))), inputuri = SparkMongoIOStruct(generateClusterURI("datamining", "testsparkIO").generateMongoSparkURI), jarName = "testSparkUtil.jar", outputuri = generateClusterURI("datamining", "testsparkIO"))
+	  val map = HashMap[String, String]()
+	  map.+=(("segdata", ""))
+	  replace(smu, DoWork.DoctoDoc, map)
 	}
 }
 
 object DoWork extends Serializable{
-	def DoctoDoc(doc: Document): Document = {
+	def DoctoDoc(d: Document, ser: Serializable*): Document = {
+		val doc = d
+		Try{
+			val map = ser(0).asInstanceOf[HashMap[String, String]]
+			map.foreach(x => {
+				doc.append(x._1, x._2)
+			})
+		}		
 		doc
 	}
 }
