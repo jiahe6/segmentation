@@ -5,6 +5,10 @@ import main.DocHandlerMongoToMongo
 import tp.file.label.FindLabelByMongo
 import java.text.SimpleDateFormat
 import java.util.Date
+import org.gz.util.MongoUserUtils
+import com.mongodb.MongoClientURI
+import com.mongodb.MongoClient
+import com.mongodb.client.model.Filters.{eq => eqq}
 
 object ImportDataProcess {
 	
@@ -40,6 +44,14 @@ object ImportDataProcess {
 	}
 	
 	def main(args: Array[String]): Unit = {
+		val muu = new MongoUserUtils
+		val mongoURI = new MongoClientURI(muu.clusterMongoURI)
+		val mongo = new MongoClient(mongoURI)
+		val db = mongo.getDatabase("wenshu")
+		val dbColl = db.getCollection("origin2")
+		val rs = dbColl.find(eqq("_id", "8365f7ef-d676-4045-828e-739e1defe239")).iterator()		
+	  val d = processSegData(rs.next())
+	  println(d.get("segdata", classOf[Document]))
 	  
 	}
 }
