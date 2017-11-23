@@ -59,10 +59,11 @@ object VerifyResDataMining {
   			val set = if (list != null) HashSet(list: _*) else HashSet[String]()
   			sentences.foreach { y =>
   				dict.foreach{z =>
-  					if ((y.contains(z._1))&&(!set.contains(z._2))){
+  					if ((y.contains(z._1))&&(!set.contains(z._2))){  						
   						segWriter.write("\n" + y + "\n")
   						segWriter.write(z._1 + "->" + z._2 + "\n")
   						segWriter.write("已有标签" + set.mkString(",") + "\n")
+  						segWriter.write(x.getString("_id") + "\n")
   					}}}
   		}}
   	segWriter.close()
