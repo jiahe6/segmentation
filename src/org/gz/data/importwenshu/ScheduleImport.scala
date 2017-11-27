@@ -64,11 +64,13 @@ object ScheduleImport extends Conf{
 	
 	def unzipRar(day: String) = {
 		val f = new File(wenshuRarPath + day + ".rar")
+		if (f.length() < 30) throw new java.util.zip.ZipException("File length < 30")
 		if (f.exists) {
 			log.info("start unzip file: " + wenshuRarPath + day + ".rar")
 			IOUtils.decompressZip(f, wenshuPath + day + "/")
 		} else {
 			log.warn("cant find the rar file:\t" + wenshuRarPath + day)
+			throw new java.io.FileNotFoundException("cant find the rar file:\t" + wenshuRarPath + day)
 		}
 	}
 	
