@@ -44,12 +44,13 @@ object VerifyResDataMining {
     	}
     	count = count + 1    	
     }
+		println(count)
 		docs
   }
     
-  def analyzeSampleData(casecause: String, dict: HashMap[String, String]) = {
+  def analyzeSampleData(casecause: String, dict: HashMap[String, String], outFile: File) = {
   	val docs = sampledata(casecause)  	
-  	val segWriter = new PrintWriter(new File("C:/Users/cloud/Desktop/民间借贷纠纷"))
+  	val segWriter = new PrintWriter(outFile)
   	docs.foreach { x => 
   		val mininglabel = x.get("mininglabel", classOf[Document])
   		val sentence = mininglabel.getString("争议焦点句子")
@@ -84,7 +85,7 @@ object VerifyResDataMining {
 			"连带" -> "连带责任争议",
 			"转让" -> "债权债务转让争议"			
 			)
-		analyzeSampleData("民间借贷纠纷", dict)
+		analyzeSampleData("民间借贷纠纷", dict, new File("C:/Users/cloud/Desktop/民间借贷纠纷"))
   }
 	
 }

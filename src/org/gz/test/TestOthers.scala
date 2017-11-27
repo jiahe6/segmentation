@@ -60,8 +60,21 @@ object TestOthers {
   	ImportOrigin.folderToDocuments(x, dbColl)
   }
   
+  def getFileLength = {
+  	val x = new File("C:/Users/cloud/Desktop/20171126.rar")
+  	//val zipFile = new ZipFile(x, "UTF8")
+  	if (x.length() < 30) throw new java.util.zip.ZipException("File length < 30")
+  	println(2)
+  }
+  
   def main(args: Array[String]): Unit = {
- 	  	testbinary
+  	try{
+ 	  	getFileLength
+  	}catch{
+  		case e: java.util.zip.ZipException =>
+  			print(true)
+  		case e2: Throwable => 
+  	}
   }
   
 }
