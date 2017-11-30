@@ -19,6 +19,8 @@ import scala.collection.mutable.HashSet
 import com.mongodb.MongoClientURI
 import com.mongodb.MongoClient
 import org.gz.util.MongoUserUtils
+import com.mongodb.client.model.Filters.{eq => eqq}
+import org.gz.VerifyResDataMining
 
 object TestOthers {
   
@@ -67,9 +69,20 @@ object TestOthers {
   	println(2)
   }
   
+  def testGetSentence() = {
+  	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+		lazy val mongo = new MongoClient(mongoURI)
+		lazy val db = mongo.getDatabase("datamining")
+		lazy val dbColl = db.getCollection("sampledata")
+		val iter = dbColl.find(eqq("basiclabel.procedure", "二审")).iterator()
+		val doc = iter.next()
+		println(VerifyResDataMining.getSentence(doc))
+		println(doc.getString("_id"))
+  }
+  
   def main(args: Array[String]): Unit = {
   	try{
- 	  	getFileLength
+ 	  	testGetSentence
   	}catch{
   		case e: java.util.zip.ZipException =>
   			print(true)
