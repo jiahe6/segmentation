@@ -100,6 +100,29 @@ object VerifyResDataMining {
   	segWriter.close()
   }
   
+  def analyzeSampleDataZhengyi(casecause: String, dict: HashMap[String, (String, String)], outFile: File) = {
+  	val docs = sampledata(casecause)  	
+  	val segWriter = new PrintWriter(outFile)
+  	val c = 11.toChar
+  	docs.foreach { x => 
+  		val mininglabel = x.get("mininglabel", classOf[Document])
+  		val sentence = mininglabel.getString("争议焦点句子")
+  		if (sentence != null){  			
+  			segWriter.write("----------------------------------------------------\n" + x.getString("_id") + "\n")
+  			val sentences = sentence.split(s"[${c}\n。]")
+  			val list = mininglabel.get("争议焦点", classOf[java.util.ArrayList[String]])
+  			val set = if (list != null) HashSet(list: _*) else HashSet[String]()
+  			sentences.foreach { y =>
+  				dict.foreach{z =>
+  					if ((containsKeyWord(y, z._1))&&(!set.contains(z._2._2))){  						
+  						segWriter.write("\n" + y + "\n")
+  						segWriter.write(z._1 + "->" + z._2._1 + "\n")
+  						segWriter.write("已有标签: " + set.mkString(", ") + "\n")  						
+  					}}}
+  		}}
+  	segWriter.close()
+  }
+  
   def main(args: Array[String]): Unit = {
 //    val dict = HashMap[String, String](
 //			"借款" -> "借款关系争议",
@@ -120,6 +143,7 @@ object VerifyResDataMining {
   	val filePath2 = "C:/Users/cloud/Desktop/类案搜索/数据分析杨天泰和数据组资料/数据清洗结果/"
   	val path = new File(filePath)
   	path.list().foreach { fileName =>  		
+  		dict.clear()
 	  	val f = new File(filePath + fileName)
 			Source.fromFile(f, "utf-8").getLines().foreach { x =>
 				val arr = x.split("->")
