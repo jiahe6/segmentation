@@ -28,6 +28,8 @@ class MongoUserUtils extends Conf{
   
   def backupDefaultURI = s"mongodb://${backupUser}:${backupPW}@${backupURI}/wenshu.backup?authSource=${backupAuthDB}"
   
+  def customizeSparkClusterURI(dbcoll: String) = s"mongodb://${clusterUser}:${clusterPW}@${clusterURI}/${dbcoll}?authSource=${clusterAuthDB}"
+  
   def sparkSessionBuilder(inputuri: String = "", outputuri: String = "", jarName: String = "DataMigration.jar", extJars: Array[String] = Array()) = {
   	val inp = if (inputuri == "") origin2URI else inputuri
   	val oup = if (outputuri == "") backupDefaultURI else outputuri
