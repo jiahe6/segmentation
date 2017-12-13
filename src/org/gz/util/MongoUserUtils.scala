@@ -2,13 +2,14 @@ package org.gz.util
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.SparkConf
-
+//the standard URI is format like: mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
 class MongoUserUtils extends Conf{
 	//集群配置信息
   val clusterUser = config.getString("mongo.cluster.user")
   val clusterPW = config.getString("mongo.cluster.passwd")
   val clusterURI = config.getString("mongodb.clusteruri")
   val clusterAuthDB = config.getString("mongo.cluster.authDB")
+  val clusterURIAll = config.getString("mongodb.clusteruriall")
   
   //备份单机配置信息
   val backupUser = config.getString("mongo.backup.user")
@@ -24,11 +25,11 @@ class MongoUserUtils extends Conf{
   
   def backupMongoURI = generateMongoURI(backupUser, backupPW, backupURI, backupAuthDB)
   
-  def origin2URI = s"mongodb://${clusterUser}:${clusterPW}@${clusterURI}/wenshu.origin2?authSource=${clusterAuthDB}"
+  def origin2URI = s"mongodb://${clusterUser}:${clusterPW}@${clusterURIAll}/wenshu.origin2?authSource=${clusterAuthDB}"
   
   def backupDefaultURI = s"mongodb://${backupUser}:${backupPW}@${backupURI}/wenshu.backup?authSource=${backupAuthDB}"
   
-  def customizeSparkClusterURI(dbcoll: String) = s"mongodb://${clusterUser}:${clusterPW}@${clusterURI}/${dbcoll}?authSource=${clusterAuthDB}"
+  def customizeSparkClusterURI(dbcoll: String) = s"mongodb://${clusterUser}:${clusterPW}@${clusterURIAll}/${dbcoll}?authSource=${clusterAuthDB}"
   
   def sparkSessionBuilder(inputuri: String = "", outputuri: String = "", jarName: String = "DataMigration.jar", extJars: Array[String] = Array()) = {
   	val inp = if (inputuri == "") origin2URI else inputuri
