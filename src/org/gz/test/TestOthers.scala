@@ -21,6 +21,7 @@ import com.mongodb.MongoClient
 import org.gz.util.MongoUserUtils
 import com.mongodb.client.model.Filters.{eq => eqq}
 import org.gz.VerifyResDataMining
+import scala.collection.JavaConversions._
 
 object TestOthers {
   
@@ -80,9 +81,26 @@ object TestOthers {
 		println(doc.getString("_id"))
   }
   
+  def copyCollection() = {
+  	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+		lazy val mongo = new MongoClient(mongoURI)
+		lazy val db = mongo.getDatabase("wenshu")
+		lazy val dbColl = db.getCollection("guidingwenshu")
+		lazy val db2 = mongo.getDatabase("datamining")
+		lazy val dbColl2 = db2.getCollection("guidingwenshu")
+		val iter = dbColl.find().iterator()
+		iter.foreach(x => {
+			dbColl2.insertOne(x)
+		})
+		mongo.close()
+  }
+  
   def main(args: Array[String]): Unit = {
   	try{
- 	  	testGetSentence
+  		val str = "qwe.。123"
+  		str.split("[。.]").foreach(println)
+  		//copyCollection
+ 	  	//testGetSentence
   	}catch{
   		case e: java.util.zip.ZipException =>
   			print(true)

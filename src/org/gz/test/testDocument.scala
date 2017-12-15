@@ -23,10 +23,10 @@ object testDocument {
 	}
 	
   def main(args: Array[String]): Unit = {
-  	lazy val mongo = new MongoClient("192.168.12.161", 27017)
-		lazy val db = mongo.getDatabase("wenshu")
-		lazy val dbColl = db.getCollection("sample_gz")
-		val d = new Document
+//  	lazy val mongo = new MongoClient("192.168.12.161", 27017)
+//		lazy val db = mongo.getDatabase("wenshu")
+//		lazy val dbColl = db.getCollection("sample_gz")
+//		val d = new Document
 //		d.append("_id", "123asd")
 //		d.append("测试", "123asd")
 //		d.append("测试", "234sdf")
@@ -39,16 +39,16 @@ object testDocument {
 //			println(f)
 //  		Source.fromInputStream(ClassLoader.getSystemClassLoader().getResourceAsStream("resources/" + f)).getLines().foreach(println)
 //		}
-  	val regex = "[^:：。.]*(原审|一审)[^:：,。.，]*[^上]诉称|[^:：。.]*原审诉称".replaceAll("\\.\\.", "[^:：]*").replaceAll("---", "[^:：,。.，]*").replaceAll("==", "[^:：。.]*").r
-//  	val r = "[^:：]*二审期间".r
-  	val it = regex.findAllIn("刘清芳原审六六六上诉称：刘清芳到达法定退休年龄后")
-  	if (it.hasNext){
-  		println(it.next())
-  		println(it.start)
-  	}
-  	import com.mongodb.client.model.Filters.{eq => eqq}
-  	val docs = dbColl.find(eqq("_id", "0e927fe8-f1b1-4b01-a007-8006ff3a8ece")).iterator()
-  	val str1 = docs.next().getString("content")
+//  	val regex = "[^:：。.]*(原审|一审)[^:：,。.，]*[^上]诉称|[^:：。.]*原审诉称".replaceAll("\\.\\.", "[^:：]*").replaceAll("---", "[^:：,。.，]*").replaceAll("==", "[^:：。.]*").r
+////  	val r = "[^:：]*二审期间".r
+//  	val it = regex.findAllIn("刘清芳原审六六六上诉称：刘清芳到达法定退休年龄后")
+//  	if (it.hasNext){
+//  		println(it.next())
+//  		println(it.start)
+//  	}
+//  	import com.mongodb.client.model.Filters.{eq => eqq}
+//  	val docs = dbColl.find(eqq("_id", "0e927fe8-f1b1-4b01-a007-8006ff3a8ece")).iterator()
+//  	val str1 = docs.next().getString("content")
 //  	val c = 11.toChar
 //  	val arrr = Array(dddd.getString("content")).flatMap{ x => x.split(s"[${c}\n]") }
 //  	println(arrr.size)
@@ -130,13 +130,15 @@ object testDocument {
 
 书记员赵宝玉
 """
-		findRegex("上诉人诉称", """123上诉人王晓培、贾维杰辩称，一审判决认定事实清楚，适用法律正确，请求依法驳回上诉，维持原判。
-		  """)
-		val c = 11.toChar
-		val docu = SegWithOrigin2.segment(str4.replaceAll("\r", "").split(s"[${c}\n]"))
-		import scala.collection.JavaConversions._
-    val arr = docu.get("全文", classOf[java.util.List[Document]])
-   	arr.foreach{ println }
+		val md = java.security.MessageDigest.getInstance("MD5")
+		println(md.digest(str4.getBytes).map("%02x".format(_)).mkString)
+//		findRegex("上诉人诉称", """123上诉人王晓培、贾维杰辩称，一审判决认定事实清楚，适用法律正确，请求依法驳回上诉，维持原判。
+//		  """)
+//		val c = 11.toChar
+//		val docu = SegWithOrigin2.segment(str4.replaceAll("\r", "").split(s"[${c}\n]"))
+//		import scala.collection.JavaConversions._
+//    val arr = docu.get("全文", classOf[java.util.List[Document]])
+//   	arr.foreach{ println }
 		//println(docu)
 //		import scala.collection.JavaConverters._
 //		val readConfig = ReadConfig("wenshu", "origin2", connectionString = Some("mongodb://192.168.12.161:27017"))

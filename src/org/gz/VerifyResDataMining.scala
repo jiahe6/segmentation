@@ -154,6 +154,7 @@ object VerifyResDataMining {
 	  	dict.foreach(println)
 	  	val casecause = if (fileName.endsWith(".txt")) fileName.substring(0, fileName.length()-4) else fileName
 			analyzeSampleData(casecause, dict, new File(filePath2 + fileName + "抽取"))
+	  	//analyzeSampleDataZhengyi(casecause, dict, new File(filePath2 + fileName + "抽取争议"))
   	}
   }
 	
