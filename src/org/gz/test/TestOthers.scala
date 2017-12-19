@@ -22,6 +22,10 @@ import org.gz.util.MongoUserUtils
 import com.mongodb.client.model.Filters.{eq => eqq}
 import org.gz.VerifyResDataMining
 import scala.collection.JavaConversions._
+import org.gz.FilterQuotation
+import java.util.ArrayList
+import scala.util.Try
+import java.util.Date
 
 object TestOthers {
   
@@ -95,12 +99,43 @@ object TestOthers {
 		mongo.close()
   }
   
+  def testFilter = {
+  	lazy val mongoURI = new MongoClientURI(new MongoUserUtils().clusterMongoURI)
+		lazy val mongo = new MongoClient(mongoURI)
+		lazy val db = mongo.getDatabase("datamining")
+		lazy val dbColl = db.getCollection("sampledata")
+		//eqq("_id", "5af67729-0bb6-451d-8546-ccd96088f7fb")
+		val iter = dbColl.find().iterator()
+		val fq = new FilterQuotation()
+  	val arr = new ArrayList[String]()
+  	var count = 0
+  	var num = 0
+  	var time: Long = 0
+  	var start: Long = 0
+  	iter.foreach { x =>   		
+  		//println(x.getString("_id"))
+  		num = num + 1
+  		val strs = VerifyResDataMining.getSentence(x)
+  		arr.clear()
+  		try{
+  			start = System.currentTimeMillis()
+  			fq.filterQuotation(strs, arr)
+  		} catch {
+  			case e: Throwable => count = count + 1
+  		} finally {
+  			time = time + System.currentTimeMillis() - start
+  		}
+  		if (num % 1000 == 0) println(num + s"\ttime = ${new Date(System.currentTimeMillis())}")
+  	}
+  	println(count)
+  	println(num)
+  }
+  
   def main(args: Array[String]): Unit = {
-  	try{
-  		val str = "qwe.。123"
-  		str.split("[。.]").foreach(println)
+  	try{  		
   		//copyCollection
  	  	//testGetSentence
+  		testFilter
   	}catch{
   		case e: java.util.zip.ZipException =>
   			print(true)
