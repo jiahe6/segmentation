@@ -78,6 +78,57 @@ object SegWithOrigin2 extends Conf{
 	
 	def isyishen(str: String) = if ((str == "一审被告辩称")||(str == "一审第三人称")||(str == "一审法院查明")||(str == "一审法院认为")||(str == "一审原告称")) true else false
 	
+	def mergeyishen(processedData: ArrayBuffer[(String, String)]) = {
+		var d = new Document
+		var 一审经过 = new Document
+		var yishenjingguo = ""
+		var firsty = 0
+		var lasty = -1
+		for (i <- 0 until processedData.length){
+			processedData(i)._1 match{
+				case "上诉人诉称" => processedData(i) = ("诉称", processedData(i)._2)
+				case "被上诉人辩称" => processedData(i) = ("辩称", processedData(i)._2)
+				case "一审被告辩称"|"一审第三人称"|"一审法院查明"|"一审法院认为"|"一审原告称" =>
+					if (firsty == 0) firsty = i
+					lasty = i					
+				case _ => 
+			}
+		}
+		var 一审 = ArrayBuffer[(String, String)]()
+		for (i <- (firsty to lasty).reverse){
+			processedData(i)._1 match{
+				case "一审被告辩称"|"一审第三人称"|"一审法院查明"|"一审法院认为"|"一审原告称" => 
+					一审 += ((processedData(i)._1, processedData(i)._2))
+					yishenjingguo = processedData(i)._2 + yishenjingguo
+				case _ => processedData(i - 1) = (processedData(i - 1)._1, processedData(i - 1)._2 + processedData(i)._2)
+			}
+		}
+		一审经过.append("全文", yishenjingguo)
+		一审.reverse.foreach(x => 一审经过.append(x._1, x._2))
+		val arr全文 = ArrayBuffer[Document]()
+		for (i <- 0 until firsty)
+			if (processedData(i)._1 != "none"){ 
+				d.append(processedData(i)._1, processedData(i)._2)
+				val tmp = new Document 
+				tmp.append(processedData(i)._1, processedData(i)._2)
+				arr全文 += tmp
+			}
+		if (firsty > 0) {
+			d.append("一审经过", 一审经过)
+			val tmp = new Document 
+			tmp.append("一审经过", 一审经过.get("全文"))
+			arr全文 += tmp
+		}
+		for (i <- (lasty+1) until processedData.length) 
+			if (processedData(i)._1 != "none"){
+				d.append(processedData(i)._1, processedData(i)._2)
+				val tmp = new Document 
+				tmp.append(processedData(i)._1, processedData(i)._2)
+				arr全文 += tmp
+			}
+		d.append("全文", arr全文.asJava)
+	}
+	
 	def segment(arr: Array[String]) = {
 	//结果
 		val processedData = ArrayBuffer[(String, String)]()
@@ -141,54 +192,7 @@ object SegWithOrigin2 extends Conf{
 			
 		}
 		processedData += ((last, strs))	
-		var d = new Document
-		var 一审经过 = new Document
-		var yishenjingguo = ""
-		var firsty = 0
-		var lasty = -1
-		for (i <- 0 until processedData.length){
-			processedData(i)._1 match{
-				case "上诉人诉称" => processedData(i) = ("诉称", processedData(i)._2)
-				case "被上诉人辩称" => processedData(i) = ("辩称", processedData(i)._2)
-				case "一审被告辩称"|"一审第三人称"|"一审法院查明"|"一审法院认为"|"一审原告称" =>
-					if (firsty == 0) firsty = i
-					lasty = i					
-				case _ => 
-			}
-		}
-		var 一审 = ArrayBuffer[(String, String)]()
-		for (i <- (firsty to lasty).reverse){
-			processedData(i)._1 match{
-				case "一审被告辩称"|"一审第三人称"|"一审法院查明"|"一审法院认为"|"一审原告称" => 
-					一审 += ((processedData(i)._1, processedData(i)._2))
-					yishenjingguo = processedData(i)._2 + yishenjingguo
-				case _ => processedData(i - 1) = (processedData(i - 1)._1, processedData(i - 1)._2 + processedData(i)._2)
-			}
-		}
-		一审经过.append("全文", yishenjingguo)
-		一审.reverse.foreach(x => 一审经过.append(x._1, x._2))
-		val arr全文 = ArrayBuffer[Document]()
-		for (i <- 0 until firsty)
-			if (processedData(i)._1 != "none"){ 
-				d.append(processedData(i)._1, processedData(i)._2)
-				val tmp = new Document 
-				tmp.append(processedData(i)._1, processedData(i)._2)
-				arr全文 += tmp
-			}
-		if (firsty > 0) {
-			d.append("一审经过", 一审经过)
-			val tmp = new Document 
-			tmp.append("一审经过", 一审经过.get("全文"))
-			arr全文 += tmp
-		}
-		for (i <- (lasty+1) until processedData.length) 
-			if (processedData(i)._1 != "none"){
-				d.append(processedData(i)._1, processedData(i)._2)
-				val tmp = new Document 
-				tmp.append(processedData(i)._1, processedData(i)._2)
-				arr全文 += tmp
-			}
-		d.append("全文", arr全文.asJava)
+		val d = mergeyishen(processedData)
 		d
 	}
 	
