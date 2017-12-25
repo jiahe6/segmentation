@@ -237,7 +237,8 @@ object ScheduleImport extends Conf{
 	  			//done  要确保插入完了进行备份，所以单线程执行备份,完成
 	  			if (cw.equals(cn)) {
 	  				try{
-	  					ScheduleBackup.doBackUp(cw)
+	  					//太占资源，暂时注释掉
+	  					//ScheduleBackup.doBackUp(cw)
 	  				}catch{
 	  					case e: Throwable => log.error(e)
 	  				}	  				
