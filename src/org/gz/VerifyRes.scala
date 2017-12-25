@@ -25,7 +25,7 @@ object VerifyRes {
 	private lazy val dbColl2 = db getCollection "origin2"
 	
 	def sample = {
-		val docs = dbColl2 find eqq("basiclabel.procedure", "二审") noCursorTimeout true iterator
+		val docs = dbColl2 find eqq("basiclabel.procedure", "二审") iterator
 		var r = new Random
     def nextInt = r.nextInt(480) + 1
     var i = nextInt
@@ -45,7 +45,7 @@ object VerifyRes {
 	}
 	
 	def verify(n: Int) = {
-		val docs = dbColl find eqq("basiclabel.procedure", "二审") noCursorTimeout true iterator
+		val docs = dbColl find eqq("basiclabel.procedure", "二审") iterator
 		var r = new Random
     def nextInt = r.nextInt(n) + 1
     var i = nextInt
@@ -93,7 +93,7 @@ object VerifyRes {
 	}
 	
   def main(args: Array[String]): Unit = {
-    //val docs = dbColl find eqq("basiclabel.procedure", "二审") noCursorTimeout true iterator
+    //val docs = dbColl find eqq("basiclabel.procedure", "二审") iterator
 //  	getDocsFromFileList(new File("D:/library/sampleout/error2"))
 //  	segError
 

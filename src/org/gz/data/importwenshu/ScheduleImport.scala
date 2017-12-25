@@ -139,7 +139,7 @@ object ScheduleImport extends Conf{
 	 */
 	def fixUnProcessData = {				
 		val dbprocesseddata = mongo.getDatabase("updatesdata").getCollection("processeddata")
-		val iter = dbColl.find().noCursorTimeout(true)
+		val iter = dbColl.find()//.noCursorTimeout(true)
 		iter.foreach(x => {			
 			try{
 				val res = ImportDataProcess.processData(x)
@@ -149,7 +149,7 @@ object ScheduleImport extends Conf{
 			}
 		})
 		val dbfixdata = mongo.getDatabase("updatesdata").getCollection("fixdata")
-		val fixiter = dbfixdata.find().noCursorTimeout(true)
+		val fixiter = dbfixdata.find()//.noCursorTimeout(true)
 		fixiter.foreach(x => {
 			try{
 				val res = ImportDataProcess.processData(x)

@@ -15,7 +15,7 @@ object ProcesseddataToOrigin {
 	private	val mongo = new MongoClient(mongoURI)
 
 	def moveData(fromColl: MongoCollection[Document], dest: MongoCollection[Document]) = {
-		val iter = fromColl.find().noCursorTimeout(true)
+		val iter = fromColl.find()//.noCursorTimeout(true)
 		var count = 0
 		iter.foreach(x => {
 			count = count + 1
