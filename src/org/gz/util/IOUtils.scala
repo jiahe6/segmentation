@@ -8,12 +8,29 @@ import scala.collection.JavaConversions._
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.io.FileOutputStream
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * 提供了创建文件夹路径和解压文件的功能，解压文件
  */
 object IOUtils {
   def checkFileParent(file: File) = if (!file.getParentFile.exists) file.getParentFile.mkdirs
+  
+  def getAllFiles(file: File, endsWith: String = "") = {
+  	val folders = ArrayBuffer[File]()
+  	val files = ArrayBuffer[File]()
+  	if (file.isDirectory()) folders += file else
+  		if ((endsWith == "")||(file.getName.endsWith(endsWith))) files += file 
+		var count = 0
+		while (count < folders.length){ 
+			if (folders(count).isDirectory()) folders(count).listFiles().foreach(x => {
+				if (x.isFile()&&((endsWith == "")||(x.getName.endsWith(endsWith)))) files += x else
+					if (x.isDirectory()) folders += x
+			})
+			count = count + 1	
+		}
+  	files
+  }
   
   def decompressZip(source: File, dest: String, sourceCharacters: String = "GBK", destCharacters: String = "UTF-8") = {
   	if (source.exists) {

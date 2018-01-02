@@ -21,7 +21,7 @@ class MongoUserUtils extends Conf{
   	s"mongodb://${user}:${passwd}@${uri}/?authSource=${authDB}"
   }
   
-  def clusterMongoURI = generateMongoURI(clusterUser, clusterPW, clusterURI, clusterAuthDB)
+  def clusterMongoURI = generateMongoURI(clusterUser, clusterPW, clusterURIAll, clusterAuthDB)
   def clusterLocalMongoURI(localURI: String) = generateMongoURI(clusterUser, clusterPW, localURI, clusterAuthDB)
   
   def backupMongoURI = generateMongoURI(backupUser, backupPW, backupURI, backupAuthDB)
@@ -44,7 +44,15 @@ class MongoUserUtils extends Conf{
 					s"${hdfsURI}/mongolib/mongodb-driver-3.4.2.jar",
 					s"${hdfsURI}/mongolib/mongodb-driver-core-3.4.2.jar",
 					s"${hdfsURI}/mongolib/commons-io-2.5.jar",
-					s"${hdfsURI}/mongolib/config-1.2.1.jar",
+//					s"${hdfsURI}/mongolib/config-1.2.1.jar",
+					s"${hdfsURI}/yuanyuanlib/config-1.3.1.jar",
+					s"${hdfsURI}/yuanyuanlib/janino-2.5.16.jar",
+					s"${hdfsURI}/yuanyuanlib/persimmon-core.jar",
+					s"${hdfsURI}/yuanyuanlib/persimmon-justice-online.jar",
+					s"${hdfsURI}/yuanyuanlib/scala-library.jar",
+					s"${hdfsURI}/yuanyuanlib/spray-json_2.11-1.3.3.jar",
+					s"${hdfsURI}/yuanyuanlib/yuanyuan.jar",
+					s"${hdfsURI}/yuanyuanlib/yuanyuanLaw.jar",
 					s"${hdfsURI}/${jarName}") ++ extJars))  	  
 			.config("spark.cores.max", 80)		
 			.config("spark.executor.cores", 16)

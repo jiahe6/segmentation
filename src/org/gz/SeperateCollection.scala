@@ -22,6 +22,8 @@ import scala.util.Try
 import com.mongodb.client.model.Filters.{eq => eqq}
 import com.mongodb.client.model.Updates.set
 import org.gz.util.Utils
+import tp.file.label.FindLabelByMongo
+import tp.mining.law.FindLawByMongo
 
 object SeperateCollection extends Conf{
 
@@ -213,8 +215,67 @@ object SeperateCollection extends Conf{
 		}
 	}
 	
+		def doUpdateBasicLabel = {
+		val (user, passwd, authDB) = (config.getString("mongo.cluster.user"), config.getString("mongo.cluster.passwd"), config.getString("mongo.cluster.authDB"))
+		val muu = new MongoUserUtils
+		lazy val spark = muu.sparkSessionBuilder(inputuri = muu.customizeSparkClusterURI("datamining.公司决议效力确认纠纷"), jarName = "yuanyuanspark.jar")
+		val rdd = MongoSpark.builder().sparkSession(spark).build().toRDD()	
+		val uri = muu.clusterMongoURI
+		rdd.foreachPartition{ iter =>
+			val mongoURI = new MongoClientURI(uri)
+			val mongo = new MongoClient(mongoURI)
+			val db = mongo.getDatabase("datamining")
+			val dbColl = db.getCollection("公司决议效力确认纠纷")
+			iter.foreach{ x => {				
+				val id = x.getString("_id")
+				val doc=FindLabelByMongo.backups1227(x)
+				println(x.getString("casetype2"))
+				println("---------------------------")
+				dbColl.updateOne(eqq("_id", id), set("basiclabel",doc))
+			}}
+			mongo.close()
+		}
+	}
+		
+				def doFindLaw = {
+		val (user, passwd, authDB) = (config.getString("mongo.cluster.user"), config.getString("mongo.cluster.passwd"), config.getString("mongo.cluster.authDB"))
+		val muu = new MongoUserUtils
+		lazy val spark = muu.sparkSessionBuilder(inputuri = muu.customizeSparkClusterURI("datamining.test_yy"), jarName = "yuanyuansparkLaw.jar")
+		val rdd = MongoSpark.builder().sparkSession(spark).build().toRDD()	
+		val uri = muu.clusterMongoURI
+		rdd.foreachPartition{ iter =>
+			val mongoURI = new MongoClientURI(uri)
+			val mongo = new MongoClient(mongoURI)
+			val db = mongo.getDatabase("datamining")
+			val dbColl = db.getCollection("test_yy")
+			iter.foreach{ x => {
+				val id = x.getString("_id")
+				val doc=FindLawByMongo.readLaw(x)
+				println("---------------------------")
+				dbColl.updateOne(eqq("_id", id), set("mininglabel",doc))
+			}}
+			mongo.close()
+		}
+	}
+	
 	def main(args: Array[String]): Unit = {
-		doSeperateData
+//	  val muu = new MongoUserUtils
+//	  	val uri = muu.clusterMongoURI
+//	  val mongoURI = new MongoClientURI(uri)
+//			val mongo = new MongoClient(mongoURI)
+//			val db = mongo.getDatabase("datamining")
+//			val dbColl = db.getCollection("test_yy")
+//			
+//			val iter = dbColl.find().iterator()
+//			iter.foreach(x => {
+//			  val doc=FindLabelByMongo.backups1227(x)
+//			  println(doc.getString("casetype2"))
+//			  println("--------------------------")
+//			})
+//			mongo.close()
+//	  doUpdateBasicLabel
+	  doFindLaw
+//		doSeperateData
 		//doInsertMD5
 	}
 }
